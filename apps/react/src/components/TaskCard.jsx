@@ -7,45 +7,43 @@ export default function TaskCard({ task }) {
     priority,
     commentsCount,
     attachmentsCount,
-    assignee: { colorClass },
+    assignee: { colorClass, initials },
   } = task;
-  console.log(title);
-  let priorityColor;
+
+  let priorityStyles = "";
   switch (priority) {
     case "High":
-      priorityColor = "text-red-700";
+      priorityStyles = "bg-red-100 text-red-700";
       break;
     case "Medium":
-      priorityColor = "text-yellow-700";
+      priorityStyles = "bg-yellow-100 text-yellow-700";
       break;
     case "Low":
-      priorityColor = "text-blue-700";
+      priorityStyles = "bg-blue-100 text-blue-700";
       break;
     default:
-      priorityColor = "text-white";
+      priorityStyles = "bg-gray-100 text-gray-700";
       break;
   }
+
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 cursor-grab hover:border-indigo-300 transition-colors">
       <div className="flex justify-between items-start mb-2">
         <span
-          className={
-            "px-2 py-1 text-xs font-medium rounded-md bg-blue-100 text-blue-700" +
-            priorityColor
-          }
+          className={`px-2 py-1 text-xs font-medium rounded-md ${priorityStyles}`}
         >
           {priority}
         </span>
         <button className="text-gray-400 hover:text-gray-600">...</button>
       </div>
+
       <h3 className="font-medium text-gray-800 mb-1">{title}</h3>
       <p className="text-sm text-gray-500 line-clamp-2 mb-3">{description}</p>
+
       <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-        {/* Group the metrics together on the left */}
         <div className="flex items-center gap-3">
           {commentsCount !== 0 && (
             <span className="text-xs font-medium text-gray-500 flex items-center gap-1">
-              {/* Chat Bubble Icon */}
               <svg
                 className="w-4 h-4"
                 fill="none"
@@ -65,7 +63,6 @@ export default function TaskCard({ task }) {
 
           {attachmentsCount !== 0 && (
             <span className="text-xs font-medium text-gray-500 flex items-center gap-1">
-              {/* Paperclip Icon */}
               <svg
                 className="w-4 h-4"
                 fill="none"
@@ -83,11 +80,11 @@ export default function TaskCard({ task }) {
             </span>
           )}
         </div>
-
-        {/* Avatar stays pushed to the right */}
         <div
-          className={`w-6 h-6 rounded-full border border-white shadow-sm shrink-0 ${colorClass}`}
-        ></div>
+          className={`w-6 h-6 rounded-full border border-white shadow-sm shrink-0 flex items-center justify-center text-[9px] font-bold text-white ${colorClass}`}
+        >
+          {initials}
+        </div>
       </div>
     </div>
   );
