@@ -1,6 +1,7 @@
 import { Search } from "lucide-react";
 import ProjectCard from "../components/ProjectCard";
-import CreateButton from "../components/CreateButton";
+
+import Header from "../components/Header";
 const projectsData = [
   {
     id: "proj-001",
@@ -75,28 +76,18 @@ export default function Projects() {
   return (
     <main className="flex-1 flex flex-col h-full">
       {/* Top Header */}
-      <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0">
-        <div>
-          <h1 className="text-xl font-bold text-gray-800">All Projects</h1>
+      <Header title={"All Projects"} btnLabel={"New Project"}>
+        <div className="relative hidden sm:block">
+          <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+            <Search className="w-4 h-4 text-gray-400" />
+          </span>
+          <input
+            type="text"
+            placeholder="Search projects..."
+            className="w-64 py-2 pl-9 pr-4 text-sm bg-gray-100 border-transparent rounded-lg focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+          />
         </div>
-
-        <div className="flex items-center gap-4">
-          <div className="relative hidden sm:block">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-              <Search className="w-4 h-4 text-gray-400" />
-            </span>
-            <input
-              type="text"
-              placeholder="Search projects..."
-              className="w-64 py-2 pl-9 pr-4 text-sm bg-gray-100 border-transparent rounded-lg focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
-            />
-          </div>
-          <CreateButton label={"New Project"} />
-          <div className="w-9 h-9 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 border-2 border-white shadow-sm ml-2 flex items-center justify-center text-[11px] font-bold text-white">
-            AL
-          </div>
-        </div>
-      </header>
+      </Header>
 
       {/* Projects Grid Area */}
       <div className="p-6 flex-1 overflow-y-auto">

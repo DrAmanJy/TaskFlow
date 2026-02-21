@@ -1,4 +1,5 @@
 import { Camera, Mail } from "lucide-react";
+import Header from "../components/Header";
 
 export default function Settings() {
   return (
@@ -8,16 +9,7 @@ export default function Settings() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col h-full">
         {/* Top Header */}
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0">
-          <div>
-            <h1 className="text-xl font-bold text-gray-800">Settings</h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 border-2 border-white shadow-sm ml-2 flex items-center justify-center text-[11px] font-bold text-white">
-              AL
-            </div>
-          </div>
-        </header>
+        <Header title={"Settings"} />
 
         {/* Settings Area */}
         <div className="flex-1 overflow-y-auto p-6 md:p-10">
