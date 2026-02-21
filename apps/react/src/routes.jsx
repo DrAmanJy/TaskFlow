@@ -3,6 +3,8 @@ import Home from "./pages/Home";
 import Projects from "./pages/Projects";
 import Settings from "./pages/Settings";
 import Layout from "./components/Layout";
+import LoginPage from "./pages/LoginPage";
+import SignupPage from "./pages/SignupPage";
 
 const router = createBrowserRouter([
   {
@@ -13,5 +15,7 @@ const router = createBrowserRouter([
       { path: "settings", element: <Settings /> },
     ],
   },
+  { path: "/login", element: <LoginPage /> },
+  { path: "/register", element: <SignupPage /> },
 ]);
 export default router;
