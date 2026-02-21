@@ -1,0 +1,10 @@
+import e from "express";
+import { register } from "../controllers/authController.js";
+const Router = e.Router();
+// Router.post("/login");
+// Router.post("/logout");
+Router.post("/register", register);
+// Router.get("/me");
+// Router.put("/me");
+// Router.delete("/me");
+export default Router;
