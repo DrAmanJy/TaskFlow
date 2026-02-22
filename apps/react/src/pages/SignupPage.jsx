@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { Mail, Lock, User, ArrowRight } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, AlertCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 
 export default function SignupPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const [userInfo, setUserInfo] = useState({
     firstName: "",
     lastName: "",
@@ -24,6 +27,7 @@ export default function SignupPage() {
     const { id, value } = e.target;
     setUserInfo((prev) => ({ ...prev, [id]: value }));
     setIsBlur((prev) => ({ ...prev, [id]: false }));
+    if (error) setError("");
   };
 
   const handleBlur = (e) => {
@@ -33,29 +37,36 @@ export default function SignupPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const success = await register(userInfo);
-    if (success) {
-      navigate("/");
+    setError("");
+    setLoading(true);
+
+    const { success, message } = await register(userInfo);
+
+    setLoading(false);
+    if (!success) {
+      return setError(message || "Something went wrong. Please try again.");
     }
+
+    navigate("/");
   };
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
   const isFirstNameInvalid = isBlur.firstName && userInfo.firstName.length < 3;
   const isLastNameInvalid = isBlur.lastName && userInfo.lastName.length < 3;
   const isEmailInvalid = isBlur.email && !emailRegex.test(userInfo.email);
   const isPasswordInvalid = isBlur.password && userInfo.password.length < 8;
+
   const isFormValid =
     !isFirstNameInvalid &&
     !isLastNameInvalid &&
     !isEmailInvalid &&
     !isPasswordInvalid &&
-    userInfo.firstName.trim() !== "" &&
-    userInfo.lastName.trim() !== "" &&
-    userInfo.email.trim() !== "" &&
-    userInfo.password !== "";
+    userInfo.firstName.trim().length >= 3 &&
+    userInfo.lastName.trim().length >= 3 &&
+    emailRegex.test(userInfo.email) &&
+    userInfo.password.length >= 8;
 
-  const disabledSubmit = !isFormValid;
+  const disabledSubmit = !isFormValid || loading;
 
   const getInputClass = (isInvalid) => {
     const baseClass =
@@ -63,12 +74,18 @@ export default function SignupPage() {
     const normalClass =
       "border-gray-200 focus:ring-indigo-200 focus:border-indigo-500";
     const errorClass = "border-red-500 focus:ring-red-200 focus:border-red-500";
-
     return `${baseClass} ${isInvalid ? errorClass : normalClass}`;
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
+      {/*todo move to tost*/}
+      {error && (
+        <div className=" absolute top-10 right-5 mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-md flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+          <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
+          <p className="text-sm text-red-700 font-medium">{error}</p>
+        </div>
+      )}
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <span className="text-3xl font-extrabold text-indigo-600">
           TaskFlow
@@ -76,9 +93,6 @@ export default function SignupPage() {
         <h2 className="mt-6 text-center text-2xl font-bold text-gray-900">
           Create an account
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Start managing your tasks and projects today.
-        </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
@@ -108,11 +122,10 @@ export default function SignupPage() {
                     className={getInputClass(isFirstNameInvalid)}
                   />
                 </div>
-                {/* Always rendered, but invisible if valid */}
                 <p
                   className={`mt-1.5 text-xs font-medium ${isFirstNameInvalid ? "text-red-500" : "invisible"}`}
                 >
-                  Must be at least 3 characters.
+                  Min 3 characters.
                 </p>
               </div>
 
@@ -142,7 +155,7 @@ export default function SignupPage() {
                 <p
                   className={`mt-1.5 text-xs font-medium ${isLastNameInvalid ? "text-red-500" : "invisible"}`}
                 >
-                  Must be at least 3 characters.
+                  Min 3 characters.
                 </p>
               </div>
             </div>
@@ -173,7 +186,7 @@ export default function SignupPage() {
               <p
                 className={`mt-1.5 text-xs font-medium ${isEmailInvalid ? "text-red-500" : "invisible"}`}
               >
-                Please enter a valid email address.
+                Invalid email format.
               </p>
             </div>
 
@@ -196,17 +209,16 @@ export default function SignupPage() {
                   value={userInfo.password}
                   onChange={handleInput}
                   onBlur={handleBlur}
-                  placeholder="Create a strong password"
+                  placeholder="••••••••"
                   className={getInputClass(isPasswordInvalid)}
                 />
               </div>
-              {/* Uses mt-1.5 consistently and just swaps the text and color */}
               <p
                 className={`mt-1.5 text-xs ${isPasswordInvalid ? "text-red-500 font-medium" : "text-gray-500"}`}
               >
                 {isPasswordInvalid
-                  ? "Password must be at least 8 characters."
-                  : "Must be at least 8 characters long."}
+                  ? "Must be at least 8 characters."
+                  : "Min 8 characters."}
               </p>
             </div>
 
@@ -214,35 +226,28 @@ export default function SignupPage() {
               <button
                 disabled={disabledSubmit}
                 type="submit"
-                className={`w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors ${
+                className={`w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white transition-all ${
                   disabledSubmit
-                    ? "bg-indigo-300 cursor-not-allowed" // Disabled styles
-                    : "bg-indigo-600 hover:bg-indigo-700" // Active styles
+                    ? "bg-indigo-300 cursor-not-allowed"
+                    : "bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98]"
                 }`}
               >
-                Create Account
-                <ArrowRight className="w-4 h-4" />
+                {loading ? "Creating Account..." : "Create Account"}
+                {!loading && <ArrowRight className="w-4 h-4" />}
               </button>
             </div>
           </form>
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
-                  Already have an account?{" "}
-                  <Link
-                    to="/login"
-                    className="font-medium text-indigo-600 hover:text-indigo-500"
-                  >
-                    Log in
-                  </Link>
-                </span>
-              </div>
-            </div>
+          <div className="mt-6 text-center text-sm">
+            <span className="text-gray-500">
+              Already have an account?{" "}
+              <Link
+                to="/login"
+                className="font-medium text-indigo-600 hover:text-indigo-500 underline-offset-4 hover:underline"
+              >
+                Log in
+              </Link>
+            </span>
           </div>
         </div>
       </div>
