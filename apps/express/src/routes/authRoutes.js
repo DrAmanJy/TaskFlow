@@ -1,7 +1,7 @@
 import e from "express";
-import { register } from "../controllers/authController.js";
+import { login, register } from "../controllers/authController.js";
 const Router = e.Router();
-// Router.post("/login");
+Router.post("/login", login);
 // Router.post("/logout");
 Router.post("/register", register);
 // Router.get("/me");

@@ -10,7 +10,7 @@ const PORT = process.env.PORT;
 const mongoUri = process.env.mongoUri;
 connectDb(mongoUri);
 
-app.use(cors());
+app.use(cors({ credentials: true }));
 app.use(express.json());
 app.use("/api/auth", authRouter);
 
