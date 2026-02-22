@@ -3,8 +3,7 @@ import CreateButton from "../components/CreateButton";
 import { useAuth } from "../context/authContext";
 
 export default function Header({ title, children, btnLabel }) {
-  const user = useAuth();
-
+  const { user } = useAuth();
   return (
     <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0">
       <div>
@@ -15,7 +14,7 @@ export default function Header({ title, children, btnLabel }) {
         {children}
         {btnLabel && <CreateButton label={btnLabel} />}
 
-        {user.isLogin ? (
+        {user ? (
           <div className="w-9 h-9 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 border-2 border-white shadow-sm ml-2 flex items-center justify-center text-[11px] font-bold text-white">
             AL
           </div>
