@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { Mail, Lock, User, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/authContext";
 
 export default function SignupPage() {
+  const { register } = useAuth();
+  const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState({
     firstName: "",
     lastName: "",
@@ -28,9 +31,12 @@ export default function SignupPage() {
     setIsBlur((prev) => ({ ...prev, [id]: true }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(userInfo);
+    const success = await register(userInfo);
+    if (success) {
+      navigate("/");
+    }
   };
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
