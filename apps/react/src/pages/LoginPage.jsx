@@ -1,8 +1,14 @@
 import { useState } from "react";
-import { Mail, Lock, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Mail, Lock, ArrowRight, AlertCircle } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/authContext";
 
 export default function LoginPage() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const [userInfo, setUserInfo] = useState({
     email: "",
     password: "",
@@ -17,6 +23,7 @@ export default function LoginPage() {
     const { id, value } = e.target;
     setUserInfo((prev) => ({ ...prev, [id]: value }));
     setIsBlur((prev) => ({ ...prev, [id]: false }));
+    if (error) setError("");
   };
 
   const handleBlur = (e) => {
@@ -24,22 +31,32 @@ export default function LoginPage() {
     setIsBlur((prev) => ({ ...prev, [id]: true }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(userInfo);
+    setError("");
+    setLoading(true);
+
+    const { success, message } = await login(userInfo);
+
+    setLoading(false);
+    if (!success) {
+      return setError(message || "Something went wrong. Please try again.");
+    }
+
+    navigate("/");
   };
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
   const isEmailInvalid = isBlur.email && !emailRegex.test(userInfo.email);
   const isPasswordInvalid = isBlur.password && userInfo.password.length < 8;
+
   const isFormValid =
     !isEmailInvalid &&
     !isPasswordInvalid &&
-    userInfo.email.trim() !== "" &&
-    userInfo.password !== "";
+    emailRegex.test(userInfo.email) &&
+    userInfo.password.length >= 8;
 
-  const disabledSubmit = !isFormValid;
+  const disabledSubmit = !isFormValid || loading;
 
   const getInputClass = (isInvalid) => {
     const baseClass =
@@ -53,6 +70,13 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
+      {/*todo move to tost*/}
+      {error && (
+        <div className=" absolute top-10 right-5 mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-md flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+          <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
+          <p className="text-sm text-red-700 font-medium">{error}</p>
+        </div>
+      )}
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <span className="text-3xl font-extrabold text-indigo-600">
           TaskFlow
