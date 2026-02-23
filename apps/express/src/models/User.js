@@ -30,7 +30,8 @@ const userSchema = new mongoose.Schema(
     },
     profile: {
       type: String,
-      default: "",
+      default:
+        "https://res.cloudinary.com/ddhjov3eb/image/upload/v1771834493/default-profile_bag8or.png",
       trim: true,
     },
     role: {
