@@ -43,6 +43,7 @@ export const register = async (req, res) => {
           firstName: newUser.firstName,
           lastName: newUser.lastName,
           email: newUser.email,
+          profile: newUser.profile,
           role: newUser.role,
         },
       });
@@ -91,6 +92,7 @@ export const login = async (req, res) => {
             firstName: existingUser.firstName,
             lastName: existingUser.lastName,
             email: existingUser.email,
+            profile: existingUser.profile,
             role: existingUser.role,
           },
         });
@@ -103,4 +105,17 @@ export const login = async (req, res) => {
       .status(500)
       .json({ success: false, message: "Internal server error" });
   }
+};
+
+// controllers/authController.js
+
+export const logout = (req, res) => {
+  res.cookie("token", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV !== "development", // Use secure in production
+    sameSite: "strict",
+    expires: new Date(0),
+  });
+
+  res.status(200).json({ message: "Logged out successfully" });
 };
