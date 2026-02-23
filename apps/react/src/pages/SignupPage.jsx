@@ -2,11 +2,11 @@ import { useState } from "react";
 import { Mail, Lock, User, ArrowRight, AlertCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/authContext";
+import toast from "react-hot-toast";
 
 export default function SignupPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const [userInfo, setUserInfo] = useState({
@@ -24,29 +24,27 @@ export default function SignupPage() {
   });
 
   const handleInput = (e) => {
-    const { id, value } = e.target;
-    setUserInfo((prev) => ({ ...prev, [id]: value }));
-    setIsBlur((prev) => ({ ...prev, [id]: false }));
-    if (error) setError("");
+    const { name, value } = e.target;
+    setUserInfo((prev) => ({ ...prev, [name]: value }));
+    setIsBlur((prev) => ({ ...prev, [name]: false }));
   };
 
   const handleBlur = (e) => {
-    const { id } = e.target;
-    setIsBlur((prev) => ({ ...prev, [id]: true }));
+    const { name } = e.target;
+    setIsBlur((prev) => ({ ...prev, [name]: true }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
 
     const { success, message } = await register(userInfo);
 
     setLoading(false);
     if (!success) {
-      return setError(message || "Something went wrong. Please try again.");
+      return toast.error(message || "Something went wrong. Please try again.");
     }
-
+    toast.success("User registered successfully");
     navigate("/");
   };
 
@@ -79,13 +77,6 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
-      {/*todo move to tost*/}
-      {error && (
-        <div className=" absolute top-10 right-5 mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-md flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
-          <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
-          <p className="text-sm text-red-700 font-medium">{error}</p>
-        </div>
-      )}
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <span className="text-3xl font-extrabold text-indigo-600">
           TaskFlow
@@ -113,12 +104,13 @@ export default function SignupPage() {
                     <User className="w-5 h-5" />
                   </span>
                   <input
-                    type="text"
                     id="firstName"
-                    placeholder="John"
+                    name="firstName"
+                    type="text"
                     value={userInfo.firstName}
                     onChange={handleInput}
                     onBlur={handleBlur}
+                    placeholder="John"
                     className={getInputClass(isFirstNameInvalid)}
                   />
                 </div>
@@ -144,11 +136,12 @@ export default function SignupPage() {
                   </span>
                   <input
                     id="lastName"
+                    name="lastName"
                     type="text"
-                    placeholder="Doe"
                     value={userInfo.lastName}
                     onChange={handleInput}
                     onBlur={handleBlur}
+                    placeholder="Doe"
                     className={getInputClass(isLastNameInvalid)}
                   />
                 </div>
@@ -175,6 +168,7 @@ export default function SignupPage() {
                 </span>
                 <input
                   id="email"
+                  name="email"
                   type="email"
                   value={userInfo.email}
                   onChange={handleInput}
@@ -205,6 +199,7 @@ export default function SignupPage() {
                 </span>
                 <input
                   id="password"
+                  name="password"
                   type="password"
                   value={userInfo.password}
                   onChange={handleInput}

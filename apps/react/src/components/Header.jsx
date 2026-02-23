@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import CreateButton from "../components/CreateButton";
 import { useAuth } from "../context/authContext";
 
-export default function Header({ title, children, btnLabel }) {
+export default function Header({ title, children, btnLabel, btnAction }) {
   const { user } = useAuth();
   return (
     <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0">
@@ -12,12 +12,14 @@ export default function Header({ title, children, btnLabel }) {
 
       <div className="flex items-center gap-4">
         {children}
-        {btnLabel && <CreateButton label={btnLabel} />}
+        {btnLabel && <CreateButton label={btnLabel} action={btnAction} />}
 
         {user ? (
-          <div className="w-9 h-9 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 border-2 border-white shadow-sm ml-2 flex items-center justify-center text-[11px] font-bold text-white">
-            AL
-          </div>
+          <img
+            src={user.profile}
+            alt="User profile"
+            className="w-9 h-9 rounded-full border-2 border-white shadow-sm ml-2 object-cover"
+          />
         ) : (
           <Link
             to="/login"

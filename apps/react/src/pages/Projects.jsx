@@ -2,6 +2,8 @@ import { Search } from "lucide-react";
 import ProjectCard from "../components/ProjectCard";
 
 import Header from "../components/Header";
+import CreateProjectForm from "../components/CreateProjectForm";
+import { useState } from "react";
 const projectsData = [
   {
     id: "proj-001",
@@ -73,10 +75,16 @@ const projectsData = [
   },
 ];
 export default function Projects() {
+  const [showForm, setShowForm] = useState(false);
+  const toggleShowForm = () => setShowForm(showForm ? false : true);
   return (
     <main className="flex-1 flex flex-col h-full">
       {/* Top Header */}
-      <Header title={"All Projects"} btnLabel={"New Project"}>
+      <Header
+        title={"All Projects"}
+        btnLabel={"New Project"}
+        btnAction={toggleShowForm}
+      >
         <div className="relative hidden sm:block">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3">
             <Search className="w-4 h-4 text-gray-400" />
@@ -88,6 +96,7 @@ export default function Projects() {
           />
         </div>
       </Header>
+      {showForm && <CreateProjectForm onClose={toggleShowForm} />}
 
       {/* Projects Grid Area */}
       <div className="p-6 flex-1 overflow-y-auto">
