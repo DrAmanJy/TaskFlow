@@ -11,7 +11,7 @@ const Router = e.Router();
 
 Router.get("/project/:id", requireAuth, readProject);
 Router.post("/project", requireAuth, createProject);
-Router.put("/project", requireAuth, updateProject);
+Router.put("/project/:id", requireAuth, updateProject);
 Router.delete("/project/:id", requireAuth, deleteProject);
 
 export default Router;
