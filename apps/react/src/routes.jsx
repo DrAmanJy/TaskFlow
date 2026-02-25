@@ -5,6 +5,7 @@ import Settings from "./pages/Settings";
 import Layout from "./components/Layout";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import Project from "./pages/Project";
 
 const router = createBrowserRouter([
   {
@@ -12,6 +13,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: "projects", element: <Projects /> },
+      { path: "projects/:id", element: <Project /> },
       { path: "settings", element: <Settings /> },
     ],
   },

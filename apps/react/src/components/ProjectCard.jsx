@@ -1,6 +1,5 @@
 import React from "react";
 import TeamBadge from "./TeamBadge";
-// 1. Import the icons you need from lucide-react
 import {
   Layout,
   Server,
@@ -9,6 +8,7 @@ import {
   MoreVertical,
   Clock,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 const iconMap = {
   layout: Layout,
   server: Server,
@@ -35,7 +35,10 @@ export default function ProjectCard({ project }) {
     progressColor = "bg-emerald-500";
   }
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md hover:border-indigo-300 transition-all cursor-pointer flex flex-col group">
+    <Link
+      to={"699c7d3df10cd1937e8714df"}
+      className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md hover:border-indigo-300 transition-all cursor-pointer flex flex-col group"
+    >
       <div className="flex justify-between items-start mb-4">
         <div
           className={`w-10 h-10 rounded-lg flex items-center justify-center ${bgClass} ${textClass}`}
@@ -47,12 +50,10 @@ export default function ProjectCard({ project }) {
           <MoreVertical className="w-5 h-5" />
         </button>
       </div>
-
       <h2 className="text-lg font-bold text-gray-800 mb-1">{title}</h2>
       <p className="text-sm text-gray-500 mb-6 line-clamp-2 flex-1">
         {description}
       </p>
-
       <div className="mb-4">
         <div className="flex justify-between text-xs font-medium text-gray-500 mb-1">
           <span>Progress</span>
@@ -65,7 +66,6 @@ export default function ProjectCard({ project }) {
           ></div>
         </div>
       </div>
-
       <div className="flex items-center justify-between pt-4 border-t border-gray-100">
         <div className="flex -space-x-2">
           {team.map((member, i) => (
@@ -92,6 +92,6 @@ export default function ProjectCard({ project }) {
           </span>
         )}
       </div>
-    </div>
+    </Link>
   );
 }

@@ -3,7 +3,10 @@ import ProjectCard from "../components/ProjectCard";
 
 import Header from "../components/Header";
 import CreateProjectForm from "../components/CreateProjectForm";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useAuth } from "../context/authContext";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 const projectsData = [
   {
     id: "proj-001",
@@ -76,6 +79,37 @@ const projectsData = [
 ];
 export default function Projects() {
   const [showForm, setShowForm] = useState(false);
+  const [projects, setProjects] = useState(null);
+  const navigate = useNavigate();
+  const { isLogin } = useAuth();
+  useEffect(() => {
+    const getProject = async () => {
+      if (!isLogin) {
+        toast.error("Please login to see projects");
+        navigate("/login");
+        return;
+      }
+
+      try {
+        const res = await fetch(`http://localhost:5000/api/projects`, {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (!res.ok) {
+          toast.error("Failed to fetch project");
+          return;
+        }
+
+        const data = await res.json();
+        setProjects(data.project);
+      } catch (error) {
+        console.error("Network error:", error);
+      }
+    };
+
+    getProject();
+  }, [isLogin, navigate]);
   const toggleShowForm = () => setShowForm(showForm ? false : true);
   return (
     <main className="flex-1 flex flex-col h-full">
@@ -106,8 +140,11 @@ export default function Projects() {
             <ProjectCard key={project.id} project={project} />
           ))}
 
-          {/* Empty State / Create New Card */}
-          <div className="bg-transparent border-2 border-dashed border-gray-300 rounded-xl p-5 hover:border-indigo-400 hover:bg-indigo-50/50 transition-all cursor-pointer flex flex-col items-center justify-center min-h-[240px] text-gray-500 hover:text-indigo-600 group">
+          {/*Create New Card */}
+          <div
+            onClick={toggleShowForm}
+            className="bg-transparent border-2 border-dashed border-gray-300 rounded-xl p-5 hover:border-indigo-400 hover:bg-indigo-50/50 transition-all cursor-pointer flex flex-col items-center justify-center min-h-[240px] text-gray-500 hover:text-indigo-600 group"
+          >
             <div className="w-12 h-12 rounded-full bg-gray-100 group-hover:bg-indigo-100 flex items-center justify-center mb-3 transition-colors">
               <svg
                 className="w-6 h-6"

@@ -9,7 +9,7 @@ export default function AuthProvider({ children }) {
 
     const getUser = async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/auth/me", {
+        const res = await fetch("http://localhost:3000/api/user/me", {
           method: "GET",
           credentials: "include",
         });

@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import { Layout, Server, Store, Folder, X } from "lucide-react";
+import { useAuth } from "../context/authContext";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 export default function CreateProjectForm({ onClose }) {
+  const { isLogin } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -18,10 +23,25 @@ export default function CreateProjectForm({ onClose }) {
     setFormData((prev) => ({ ...prev, type }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("New Project Data:", formData);
-    // TODO: Send to  /api/projects route
+    if (!isLogin) {
+      navigate("/login");
+      toast.error("Please login before creating Project");
+    }
+    const res = await fetch("http://localhost:3000/api/project", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+      credentials: "include",
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      toast.error(data.message);
+    }
+    toast.success(data.message);
+    console.log(data.project);
+    onClose();
   };
 
   const iconOptions = [
