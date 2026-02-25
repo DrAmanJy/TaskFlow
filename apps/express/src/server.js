@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import connectDb from "./config/db.js";
 import authRouter from "./routes/authRoutes.js";
 import projectRouter from "./routes/projectRoutes.js";
+import userRouter from "./routes/userRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -22,6 +23,7 @@ app.use(cookieParser());
 // Routes
 app.use("/api/auth", authRouter);
 app.use("/api", projectRouter);
+app.use("/api/user", userRouter);
 
 app.listen(PORT, () =>
   console.log(`Server is running on http://localhost:${PORT}`),
