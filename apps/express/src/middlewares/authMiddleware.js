@@ -1,36 +1,26 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import AppError from "../utils/AppError.js";
 
 export const requireAuth = async (req, res, next) => {
-  try {
-    const token = req.cookies.token;
+  const token = req.cookies.token;
 
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: "Not authorized, no token provided.",
-      });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    if (typeof decoded === "string") {
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid token format" });
-    }
-    const id = decoded.id;
-
-    const user = await User.findById(id).select("-password");
-
-    if (!user) {
-      return res.status(401).json({ success: false, message: "Invalid token" });
-    }
-
-    req.user = user;
-    next();
-  } catch (error) {
-    return res
-      .status(401)
-      .json({ success: false, message: "Not authorized, token failed" });
+  if (!token) {
+    throw new AppError("Not authorized, no token provided.", 401);
   }
+
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  if (typeof decoded === "string") {
+    throw new AppError("Invalid token format", 401);
+  }
+  const id = decoded.id;
+
+  const user = await User.findById(id).select("-password");
+
+  if (!user) {
+    throw new AppError("Invalid token", 401);
+  }
+
+  req.user = user;
+  next();
 };
