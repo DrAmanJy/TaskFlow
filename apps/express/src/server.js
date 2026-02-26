@@ -7,6 +7,8 @@ import connectDb from "./config/db.js";
 import authRouter from "./routes/authRoutes.js";
 import projectRouter from "./routes/projectRoutes.js";
 import userRouter from "./routes/userRoutes.js";
+import errorHandler from "./middlewares/errorHandler.js";
+import AppError from "./utils/AppError.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -24,6 +26,12 @@ app.use(cookieParser());
 app.use("/api/auth", authRouter);
 app.use("/api", projectRouter);
 app.use("/api/user", userRouter);
+
+// Error Handler
+app.all("/{*splat}", (req, res, next) => {
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+});
+app.use(errorHandler);
 
 app.listen(PORT, () =>
   console.log(`Server is running on http://localhost:${PORT}`),
