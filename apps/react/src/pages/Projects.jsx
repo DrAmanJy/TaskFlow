@@ -41,6 +41,9 @@ export default function Projects() {
     getProject();
   }, [isLogin, navigate]);
   const toggleShowForm = () => setShowForm(showForm ? false : true);
+  if (!projects) {
+  return <div className="p-8 text-center text-gray-500">Loading projects...</div>;
+  }
   return (
     <main className="flex-1 flex flex-col h-full">
       {/* Top Header */}
