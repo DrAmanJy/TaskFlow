@@ -1,8 +1,8 @@
 import { Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 
-export default function DeleteProject({ onclose, title, id }) {
-  const handelDelete = async () => {
+export default function DeleteProject({ onClose, title, id }) {
+const handleDelete = async () => {
     try {
       const res = await fetch(`http://localhost:3000/api/project/${id}`, {
         method: "DELETE",
@@ -15,9 +15,10 @@ export default function DeleteProject({ onclose, title, id }) {
       }
 
       toast.success(data.message);
-      onclose();
+      onClose();
     } catch (error) {
       console.error(error);
+      toast.error("Failed to delete project. Please try again.");
     }
   };
   return (
@@ -37,13 +38,13 @@ export default function DeleteProject({ onclose, title, id }) {
         </div>
         <div className="bg-gray-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-gray-200">
           <button
-            onClick={onclose}
+            onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
           >
             Cancel
           </button>
           <button
-            onClick={handelDelete}
+            onClick={handleDelete}
             className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors shadow-sm"
           >
             Delete Project
