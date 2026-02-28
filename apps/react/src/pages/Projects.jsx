@@ -2,81 +2,11 @@ import { Search } from "lucide-react";
 import ProjectCard from "../components/ProjectCard";
 
 import Header from "../components/Header";
-import CreateProjectForm from "../components/CreateProjectForm";
+import ProjectForm from "../components/ProjectForm";
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/authContext";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-const projectsData = [
-  {
-    id: "proj-001",
-    title: "TaskFlow Dashboard",
-    description:
-      "Internal tool for managing engineering tasks and sprints using the MERN stack.",
-    progress: 75,
-    status: "in-progress",
-    lastUpdated: "2 days ago",
-    icon: {
-      type: "layout",
-      bgClass: "bg-blue-50",
-      textClass: "text-blue-600",
-    },
-    team: [
-      {
-        id: "u1",
-        initials: "X",
-        colorClass: "bg-gradient-to-r from-cyan-500 to-blue-500",
-      },
-      {
-        id: "u2",
-        initials: "J",
-        colorClass: "bg-gradient-to-r from-purple-500 to-pink-500",
-      },
-    ],
-    additionalMembersCount: 0,
-  },
-  {
-    id: "proj-002",
-    title: "MythCraft SaaS Panel",
-    description:
-      "Server management portal connecting to the backend API for player statistics.",
-    progress: 12,
-    status: "in-progress",
-    lastUpdated: "Just now",
-    icon: {
-      type: "server",
-      bgClass: "bg-emerald-50",
-      textClass: "text-emerald-600",
-    },
-    team: [
-      {
-        id: "u3",
-        initials: "AJ",
-        colorClass: "bg-gradient-to-r from-purple-500 to-indigo-500",
-      },
-    ],
-    additionalMembersCount: 0,
-  },
-  {
-    id: "proj-003",
-    title: "E-Commerce Migration",
-    description:
-      "Moving legacy storefront to a modern Next.js and Tailwind architecture.",
-    progress: 100,
-    status: "completed",
-    lastUpdated: "1 week ago",
-    icon: {
-      type: "store",
-      bgClass: "bg-orange-50",
-      textClass: "text-orange-600",
-    },
-    team: [
-      { id: "u3", initials: "AJ", colorClass: "bg-gray-400" },
-      { id: "u4", initials: "JD", colorClass: "bg-indigo-300" },
-    ],
-    additionalMembersCount: 2,
-  },
-];
 export default function Projects() {
   const [showForm, setShowForm] = useState(false);
   const [projects, setProjects] = useState(null);
@@ -130,20 +60,20 @@ export default function Projects() {
           />
         </div>
       </Header>
-      {showForm && <CreateProjectForm onClose={toggleShowForm} />}
+      {showForm && <ProjectForm onClose={toggleShowForm} />}
 
       {/* Projects Grid Area */}
       <div className="p-6 flex-1 overflow-y-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {/* Project Card */}
-          {projectsData.map((project) => (
+          {projects.map((project) => (
             <ProjectCard key={project.id} project={project} />
           ))}
 
           {/*Create New Card */}
           <div
             onClick={toggleShowForm}
-            className="bg-transparent border-2 border-dashed border-gray-300 rounded-xl p-5 hover:border-indigo-400 hover:bg-indigo-50/50 transition-all cursor-pointer flex flex-col items-center justify-center min-h-[240px] text-gray-500 hover:text-indigo-600 group"
+            className="bg-transparent border-2 border-dashed border-gray-300 rounded-xl p-5 hover:border-indigo-400 hover:bg-indigo-50/50 transition-all cursor-pointer flex flex-col items-center justify-center min-h-60 text-gray-500 hover:text-indigo-600 group"
           >
             <div className="w-12 h-12 rounded-full bg-gray-100 group-hover:bg-indigo-100 flex items-center justify-center mb-3 transition-colors">
               <svg
