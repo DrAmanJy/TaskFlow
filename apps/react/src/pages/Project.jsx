@@ -16,6 +16,9 @@ import TaskCard from "../components/TaskCard";
 import { useAuth } from "../context/authContext";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
+import ProjectForm from "../components/ProjectForm";
+import DeleteProject from "../components/DeleteProject";
+import TaskForm from "../components/TaskForm";
 
 const MOCK_TASKS = [
   {
@@ -28,26 +31,6 @@ const MOCK_TASKS = [
     commentsCount: 3,
     attachmentsCount: 1,
     assignee: { colorClass: "bg-indigo-500", initials: "JD" },
-  },
-  {
-    id: "t-002",
-    title: "Initialize Next.js Frontend",
-    description: "Setup the initial boilerplate and routing structure.",
-    status: "in-progress",
-    priority: "Low",
-    commentsCount: 0,
-    attachmentsCount: 0,
-    assignee: { colorClass: "bg-blue-500", initials: "AL" },
-  },
-  {
-    id: "t-003",
-    title: "Connect Cloudinary for avatar uploads",
-    description: "Implement multer and cloudinary SDK in the express backend.",
-    status: "todo",
-    priority: "Medium",
-    commentsCount: 1,
-    attachmentsCount: 2,
-    assignee: { colorClass: "bg-blue-500", initials: "AL" },
   },
 ];
 
@@ -85,18 +68,41 @@ const formatDate = (isoString) => {
 
 export default function Project() {
   const [project, setProject] = useState(null);
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showTaskForm, setShowTaskForm] = useState(false);
+
   const navigate = useNavigate();
   const { id } = useParams();
   const { isLogin } = useAuth();
 
-  useEffect(() => {
-    const getProject = async () => {
-      if (!isLogin) {
-        toast.error("Please login to see project");
-        navigate("/login");
+  const refreshProject = async () => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/project/${id}`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        toast.error("Failed to fetch project");
         return;
       }
 
+      const data = await res.json();
+      setProject(data.project);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  useEffect(() => {
+    if (!isLogin) {
+      toast.error("Please login to see project");
+      navigate("/login");
+      return;
+    }
+
+    const fetchProject = async () => {
       try {
         const res = await fetch(`http://localhost:3000/api/project/${id}`, {
           method: "GET",
@@ -115,7 +121,7 @@ export default function Project() {
       }
     };
 
-    getProject();
+    fetchProject();
   }, [id, isLogin, navigate]);
 
   if (!project) {
@@ -131,14 +137,13 @@ export default function Project() {
   const statusStyles = statusMap[project.status];
 
   return (
-    <div className="min-h-screen bg-gray-50/50 p-6 lg:p-8 font-sans text-gray-800">
+    <div className="min-h-screen bg-gray-50/50 p-6 lg:p-8 font-sans text-gray-800 relative">
       <div className="max-w-6xl mx-auto space-y-6">
         <Link
           to={"/projects"}
           className="flex items-center text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
         >
-          <ArrowLeft className="w-4 h-4 mr-1.5" />
-          Back to Projects
+          <ArrowLeft className="w-4 h-4 mr-1.5" /> Back to Projects
         </Link>
 
         <div className="bg-white border border-gray-200 rounded-2xl p-6 lg:p-8 shadow-sm">
@@ -167,33 +172,36 @@ export default function Project() {
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
-              <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm">
-                <Edit className="w-4 h-4" />
-                Edit
+              <button
+                onClick={() => setShowEditModal(true)}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+              >
+                <Edit className="w-4 h-4" /> Edit
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors shadow-sm">
-                <Trash2 className="w-4 h-4" />
-                Delete
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors shadow-sm"
+              >
+                <Trash2 className="w-4 h-4" /> Delete
               </button>
             </div>
           </div>
         </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-5">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-900">Project Tasks</h2>
-              <button className="flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors bg-indigo-50 px-3 py-1.5 rounded-md">
-                <Plus className="w-4 h-4" />
-                Add Task
+              <button
+                onClick={() => setShowTaskForm(true)}
+                className="flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors bg-indigo-50 px-3 py-1.5 rounded-md"
+              >
+                <Plus className="w-4 h-4" /> Add Task
               </button>
             </div>
-
             <div className="bg-slate-50 border border-slate-100/60 rounded-xl p-3 sm:p-4 flex flex-col gap-3">
               {MOCK_TASKS.map((task) => (
                 <TaskCard key={task.id} task={task} />
               ))}
-
               {MOCK_TASKS.length === 0 && (
                 <div className="text-center py-8 text-sm text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
                   No tasks assigned yet. Click "Add Task" to get started.
@@ -207,7 +215,6 @@ export default function Project() {
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-2">
                 Details
               </h3>
-
               <div className="flex items-center text-sm">
                 <Calendar className="w-4 h-4 text-gray-400 mr-3 shrink-0" />
                 <div className="flex flex-col">
@@ -217,7 +224,6 @@ export default function Project() {
                   </span>
                 </div>
               </div>
-
               <div className="flex items-center text-sm pt-2">
                 <img
                   src={project.createdBy.profile}
@@ -236,14 +242,13 @@ export default function Project() {
             <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
-                  <Users className="w-4 h-4 text-gray-400" />
-                  Team ({project.team.length})
+                  <Users className="w-4 h-4 text-gray-400" /> Team (
+                  {project.team.length})
                 </h3>
                 <button className="text-indigo-600 hover:bg-indigo-50 p-1 rounded transition-colors">
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
-
               <div className="space-y-3">
                 {project.team.map((member) => (
                   <div
@@ -272,6 +277,21 @@ export default function Project() {
           </div>
         </div>
       </div>
+
+      {showTaskForm && <TaskForm onClose={() => setShowTaskForm(false)} />}
+      {showDeleteModal && (
+        <DeleteProject
+          title={project.title}
+          onclose={() => setShowDeleteModal(false)}
+        />
+      )}
+      {showEditModal && (
+        <ProjectForm
+          onClose={() => setShowEditModal(false)}
+          existingProject={project}
+          refreshProject={refreshProject}
+        />
+      )}
     </div>
   );
 }

@@ -1,12 +1,13 @@
 export default function TeamBadge({ member, index }) {
-  const { initials, colorClass } = member;
+  const { firstName, lastName, profile } = member;
 
   return (
-    <div
-      className={`w-7 h-7 rounded-full border-2 border-white flex items-center justify-center text-[10px] font-bold text-white ${colorClass}`}
+    <img
+      src={profile}
+      alt={`${firstName} ${lastName}`}
+      title={`${firstName} ${lastName}`}
+      className="w-7 h-7 rounded-full border-2 border-white object-cover bg-gray-100"
       style={{ zIndex: 20 - index }}
-    >
-      {initials}
-    </div>
+    />
   );
 }
