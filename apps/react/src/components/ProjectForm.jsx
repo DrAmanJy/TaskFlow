@@ -4,14 +4,20 @@ import { useAuth } from "../context/authContext";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
-export default function CreateProjectForm({ onClose }) {
+export default function ProjectForm({
+  onClose,
+  existingProject = null,
+  refreshProject = null,
+}) {
   const { isLogin } = useAuth();
   const navigate = useNavigate();
+  const isEditMode = Boolean(existingProject);
+
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    status: "todo",
-    type: "layout",
+    title: existingProject?.title || "",
+    description: existingProject?.description || "",
+    status: existingProject?.status || "todo",
+    icon: existingProject?.icon || "layout",
   });
 
   const handleChange = (e) => {
@@ -19,29 +25,49 @@ export default function CreateProjectForm({ onClose }) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleIconSelect = (type) => {
-    setFormData((prev) => ({ ...prev, type }));
+  const handleIconSelect = (iconName) => {
+    setFormData((prev) => ({ ...prev, icon: iconName }));
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!isLogin) {
       navigate("/login");
-      toast.error("Please login before creating Project");
+      toast.error("Please login before saving the project");
+      return;
     }
-    const res = await fetch("http://localhost:3000/api/project", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-      credentials: "include",
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      toast.error(data.message);
+    const url = isEditMode
+      ? `http://localhost:3000/api/project/${existingProject._id || existingProject.id}`
+      : "http://localhost:3000/api/project";
+
+    const method = isEditMode ? "PUT" : "POST";
+
+    try {
+      const res = await fetch(url, {
+        method: method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.message || "Failed to save project");
+        return;
+      }
+      toast.success(
+        isEditMode
+          ? "Project updated successfully!"
+          : "Project created successfully!",
+      );
+
+      onClose();
+      if (isEditMode) refreshProject();
+    } catch (error) {
+      console.error("Submit error:", error);
+      toast.error("Network error occurred");
     }
-    toast.success(data.message);
-    console.log(data.project);
-    onClose();
   };
 
   const iconOptions = [
@@ -73,10 +99,10 @@ export default function CreateProjectForm({ onClose }) {
 
   return (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-sans">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-bold text-gray-800">
-            Create New Project
+            {isEditMode ? "Edit Project" : "Create New Project"}
           </h2>
           <button
             onClick={onClose}
@@ -130,7 +156,7 @@ export default function CreateProjectForm({ onClose }) {
                 htmlFor="status"
                 className="block text-sm font-medium text-gray-700 mb-1.5"
               >
-                Initial Status
+                {isEditMode ? "Status" : "Initial Status"}
               </label>
               <select
                 id="status"
@@ -153,7 +179,7 @@ export default function CreateProjectForm({ onClose }) {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {iconOptions.map((option) => {
                 const IconComponent = option.icon;
-                const isActive = formData.type === option.id;
+                const isActive = formData.icon === option.id;
 
                 return (
                   <button
@@ -189,7 +215,7 @@ export default function CreateProjectForm({ onClose }) {
               type="submit"
               className="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors shadow-sm"
             >
-              Create Project
+              {isEditMode ? "Save Changes" : "Create Project"}
             </button>
           </div>
         </form>
