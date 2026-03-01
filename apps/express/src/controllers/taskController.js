@@ -59,7 +59,7 @@ export const createTask = async (req, res) => {
 };
 
 export const getProjectTasks = async (req, res) => {
-  const projectId = req.params.id;
+  const projectId = req.params.projectId;
   if (!mongoose.Types.ObjectId.isValid(projectId)) {
     throw new AppError("Invalid project Id", 400);
   }
@@ -118,6 +118,9 @@ export const deleteTask = async (req, res) => {
     throw new AppError("Task not found", 404);
   }
   const project = await Project.findById(task.project);
+  if (!project) {
+    throw new AppError("Project not found", 404);
+  }
   const isOwner = project.createdBy.toString() === req.user._id.toString();
   const isCreator = task.createdBy.toString() === req.user._id.toString();
   if (!isOwner && !isCreator) {
@@ -139,6 +142,9 @@ export const updateTask = async (req, res) => {
   if (!task) throw new AppError("Task not found", 404);
 
   const project = await Project.findById(task.project).select("team createdBy");
+  if (!project) {
+    throw new AppError("Project not found", 404);
+  }
 
   const isCreator = task.createdBy.toString() === req.user._id.toString();
   const isTeamMember = project.team.some(
@@ -206,6 +212,9 @@ export const updateTaskStatus = async (req, res) => {
   }
 
   const project = await Project.findById(task.project).select("team");
+  if (!project) {
+    throw new AppError("Project not found", 404);
+  }
   const isCreator = task.createdBy.toString() === req.user._id.toString();
   const isTeamMember = project.team.some(
     (memberId) => memberId.toString() === req.user._id.toString(),

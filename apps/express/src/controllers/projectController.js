@@ -30,6 +30,15 @@ export const readProject = async (req, res) => {
   if (!project) {
     throw new AppError("Project not found", 404);
   }
+  const userId = req.user._id.toString();
+  const isCreator =
+    (project.createdBy?._id || project.createdBy).toString() === userId;
+  const isTeamMember = project.team.some(
+    (member) => (member?._id || member).toString() === userId,
+  );
+  if (!isCreator && !isTeamMember) {
+    throw new AppError("Not authorized to read this project", 403);
+  }
 
   return res.status(200).json({ success: true, project });
 };
@@ -74,10 +83,10 @@ export const updateProject = async (req, res) => {
   }
   const { title, description, status, icon } = req.body;
   const updateData = {};
-  if (title) updateData.title = title;
-  if (description) updateData.description = description;
-  if (status) updateData.status = status;
-  if (icon) updateData.icon = icon;
+  if (title !== undefined) updateData.title = title;
+  if (description !== undefined) updateData.description = description;
+  if (status !== undefined) updateData.status = status;
+  if (icon !== undefined) updateData.icon = icon;
   const updatedProject = await Project.findByIdAndUpdate(
     id,
     { $set: updateData },
