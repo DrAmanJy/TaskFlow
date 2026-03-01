@@ -2,12 +2,12 @@ import e from "express";
 import * as controller from "../controllers/projectController.js";
 import { requireAuth } from "../middlewares/authMiddleware.js";
 
-const Router = e.Router();
+const router = e.Router();
 
-Router.get("/projects", requireAuth, controller.readProjects);
-Router.get("/project/:id", requireAuth, controller.readProject);
-Router.post("/project", requireAuth, controller.createProject);
-Router.put("/project/:id", requireAuth, controller.updateProject);
-Router.delete("/project/:id", requireAuth, controller.deleteProject);
+router.get("/projects", requireAuth, controller.readProjects);
+router.get("/project/:id", requireAuth, controller.readProject);
+router.post("/project", requireAuth, controller.createProject);
+router.put("/project/:id", requireAuth, controller.updateProject);
+router.delete("/project/:id", requireAuth, controller.deleteProject);
 
-export default Router;
+export default router;
