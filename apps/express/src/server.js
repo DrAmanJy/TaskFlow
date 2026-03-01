@@ -9,6 +9,7 @@ import projectRouter from "./routes/projectRoutes.js";
 import userRouter from "./routes/userRoutes.js";
 import errorHandler from "./middlewares/errorHandler.js";
 import AppError from "./utils/AppError.js";
+import taskRouter from "./routes/taskRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -25,6 +26,7 @@ app.use(cookieParser());
 // Routes
 app.use("/api/auth", authRouter);
 app.use("/api", projectRouter);
+app.use("/api", taskRouter);
 app.use("/api/user", userRouter);
 
 // Error Handler
