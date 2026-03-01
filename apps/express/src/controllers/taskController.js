@@ -89,7 +89,7 @@ export const getTaskById = async (req, res) => {
   }
   const isCreator = task.createdBy.toString() === req.user._id.toString();
   const isAssignee = task.assignee.some(
-    (member) => req.user._id.toString() === member.userId.toString(),
+    ({ userId }) => userId && req.user._id.toString() === userId.toString(),
   );
   if (!isCreator && !isAssignee) {
     throw new AppError("Not authorized to read this tasks", 403);
@@ -116,4 +116,92 @@ export const deleteTask = async (req, res) => {
   return res
     .status(200)
     .json({ success: true, message: "Task deleted successfully" });
+};
+
+export const updateTask = async (req, res) => {
+  const taskId = req.params.id;
+  if (!mongoose.Types.ObjectId.isValid(taskId)) {
+    throw new AppError("Invalid task Id", 400);
+  }
+
+  const task = await Task.findById(taskId);
+  if (!task) throw new AppError("Task not found", 404);
+
+  const project = await Project.findById(task.project).select("team");
+
+  const isCreator = task.createdBy.toString() === req.user._id.toString();
+  const isTeamMember = project.team.some(
+    (memberId) => memberId.toString() === req.user._id.toString(),
+  );
+
+  if (!isCreator && !isTeamMember) {
+    throw new AppError("Not authorized to update this task", 403);
+  }
+
+  const allowedUpdates = [
+    "title",
+    "description",
+    "priority",
+    "dueDate",
+    "tags",
+  ];
+  allowedUpdates.forEach((field) => {
+    if (req.body[field] !== undefined) {
+      task[field] = req.body[field];
+    }
+  });
+
+  if (req.body.assignee !== undefined) {
+    task.assignee = [{ userId: req.body.assignee }];
+  }
+
+  await task.save();
+  await task.populate("assignee.userId", "firstName lastName profile");
+
+  return res.status(200).json({
+    success: true,
+    message: "Task updated successfully",
+    task,
+  });
+};
+
+export const updateTaskStatus = async (req, res) => {
+  const taskId = req.params.id;
+  const { status, position } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(taskId)) {
+    throw new AppError("Invalid task Id", 400);
+  }
+
+  const validStatuses = ["todo", "in-progress", "review", "done"];
+  if (status && !validStatuses.includes(status)) {
+    throw new AppError("Invalid status value", 400);
+  }
+
+  const task = await Task.findById(taskId);
+  if (!task) {
+    throw new AppError("Task not found", 404);
+  }
+
+  const project = await Project.findById(task.project).select("team");
+  const isCreator = task.createdBy.toString() === req.user._id.toString();
+  const isTeamMember = project.team.some(
+    (memberId) => memberId.toString() === req.user._id.toString(),
+  );
+
+  if (!isCreator && !isTeamMember) {
+    throw new AppError("Not authorized to move this task", 403);
+  }
+
+  if (status !== undefined) task.status = status;
+  if (position !== undefined) task.position = position;
+
+  await task.save();
+  await task.populate("assignee.userId", "firstName lastName profile");
+
+  return res.status(200).json({
+    success: true,
+    message: "Task moved successfully",
+    task,
+  });
 };
