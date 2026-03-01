@@ -24,6 +24,17 @@ export const createTask = async (req, res) => {
   const isTeamMember = project.team.some(
     (memberId) => memberId.toString() === req.user._id.toString(),
   );
+  if (!mongoose.Types.ObjectId.isValid(assignee)) {
+    throw new AppError("Invalid assignee ID", 400);
+  }
+  const assigneeInProject =
+    project.createdBy.toString() === assignee.toString() ||
+    project.team.some(
+      (memberId) => memberId.toString() === assignee.toString(),
+    );
+  if (!assigneeInProject) {
+    throw new AppError("Assignee must belong to this project", 400);
+  }
 
   if (!isCreator && !isTeamMember) {
     throw new AppError("Not authorized to create tasks in this project", 403);
@@ -127,7 +138,7 @@ export const updateTask = async (req, res) => {
   const task = await Task.findById(taskId);
   if (!task) throw new AppError("Task not found", 404);
 
-  const project = await Project.findById(task.project).select("team");
+  const project = await Project.findById(task.project).select("team createdBy");
 
   const isCreator = task.createdBy.toString() === req.user._id.toString();
   const isTeamMember = project.team.some(
@@ -152,6 +163,17 @@ export const updateTask = async (req, res) => {
   });
 
   if (req.body.assignee !== undefined) {
+    if (!mongoose.Types.ObjectId.isValid(req.body.assignee)) {
+      throw new AppError("Invalid assignee ID", 400);
+    }
+    const assigneeInProject =
+      project.createdBy.toString() === req.body.assignee.toString() ||
+      project.team.some(
+        (memberId) => memberId.toString() === req.body.assignee.toString(),
+      );
+    if (!assigneeInProject) {
+      throw new AppError("Assignee must belong to this project", 400);
+    }
     task.assignee = [{ userId: req.body.assignee }];
   }
 
