@@ -1,10 +1,10 @@
 import e from "express";
 import { login, logout, register } from "../controllers/authController.js";
-const Router = e.Router();
-Router.post("/login", login);
-Router.post("/logout", logout);
-Router.post("/register", register);
-// Router.get("/me");
-// Router.put("/me");
-// Router.delete("/me");
-export default Router;
+
+const router = e.Router();
+
+router.post("/login", login);
+router.post("/logout", logout);
+router.post("/register", register);
+
+export default router;
