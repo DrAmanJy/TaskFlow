@@ -1,19 +1,20 @@
 import express from "express";
 import { requireAuth } from "../middlewares/authMiddleware.js";
+import * as controller from "../controllers/taskController.js";
 
 const router = express.Router();
 router.use(requireAuth);
 
 // Core Task Routes
-router.post("/tasks");
-router.get("/tasks/project/:projectId");
-router.get("/tasks");
-router.get("/tasks/:id");
-router.put("/tasks/:id");
-router.delete("/tasks/:id");
+router.post("/tasks", controller.createTask);
+router.get("/tasks/project/:projectId", controller.getProjectTasks);
+router.get("/tasks", controller.getAllTasks);
+router.get("/tasks/:id", controller.getTaskById);
+router.put("/tasks/:id", controller.updateTask);
+router.delete("/tasks/:id", controller.deleteTask);
 
 // Specialized/Micro-action Routes
-router.patch("/tasks/:id/status");
-router.post("/tasks/:id/comments");
+router.patch("/tasks/:id/status", controller.updateTaskStatus);
+// router.post("/tasks/:id/comments");
 
 export default router;
