@@ -6,6 +6,7 @@ import Layout from "./components/Layout";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import Project from "./pages/Project";
+import TaskPage from "./pages/TaskPage";
 
 const router = createBrowserRouter([
   {
@@ -14,6 +15,7 @@ const router = createBrowserRouter([
       { index: true, element: <Home /> },
       { path: "projects", element: <Projects /> },
       { path: "projects/:id", element: <Project /> },
+      { path: "tasks/:id", element: <TaskPage /> },
       { path: "settings", element: <Settings /> },
     ],
   },

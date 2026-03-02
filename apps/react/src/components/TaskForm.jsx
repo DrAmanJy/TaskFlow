@@ -9,14 +9,30 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
-export default function TaskForm({ onClose }) {
+export default function TaskForm({
+  onClose,
+  onSuccess,
+  team = [],
+  projects = [],
+  projectId,
+  existingTask = null,
+}) {
+  const isEditMode = Boolean(existingTask);
+
+  const initialAssignee = existingTask?.assignee?.[0]?.userId || "";
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    status: "todo",
-    priority: "Low",
-    assignee: "",
+    projectId: projectId || existingTask?.project || "",
+    title: existingTask?.title || "",
+    description: existingTask?.description || "",
+    status: existingTask?.status || "todo",
+    priority: existingTask?.priority || "Low",
+    assignee: initialAssignee,
   });
+
+  const activeTeam =
+    team.length > 0
+      ? team
+      : projects.find((p) => p.id === formData.projectId)?.team || [];
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,17 +43,55 @@ export default function TaskForm({ onClose }) {
     setFormData((prev) => ({ ...prev, priority }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Task Data to submit:", formData);
-    toast.success("Todo: add api logic");
+
+    const url = isEditMode
+      ? `http://localhost:3000/api/tasks/${existingTask._id || existingTask.id}`
+      : "http://localhost:3000/api/tasks";
+
+    const method = isEditMode ? "PUT" : "POST";
+
+    try {
+      const res = await fetch(url, {
+        method: method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+        credentials: "include",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(
+          data.message || `Failed to ${isEditMode ? "update" : "create"} task`,
+        );
+        return;
+      }
+
+      toast.success(
+        isEditMode
+          ? "Task updated successfully!"
+          : "Task created successfully!",
+      );
+
+      if (onSuccess && data.task) {
+        onSuccess(data.task);
+      }
+      onClose();
+    } catch (error) {
+      console.error("Submit error:", error);
+      toast.error("Network error occurred");
+    }
   };
 
   return (
     <div className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-sans">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-gray-800">Create New Task</h2>
+          <h2 className="text-lg font-bold text-gray-800">
+            {isEditMode ? "Edit Task" : "Create New Task"}
+          </h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 p-1.5 rounded-lg transition-colors"
@@ -47,6 +101,34 @@ export default function TaskForm({ onClose }) {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-5">
+          {!projectId && !isEditMode && (
+            <div>
+              <label
+                htmlFor="projectId"
+                className="block text-sm font-medium text-gray-700 mb-1.5"
+              >
+                Select Project <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="projectId"
+                name="projectId"
+                required
+                value={formData.projectId}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition-all text-gray-800 text-sm cursor-pointer"
+              >
+                <option value="" disabled>
+                  -- Choose a Project --
+                </option>
+                {projects.map((proj) => (
+                  <option key={proj.id} value={proj.id}>
+                    {proj.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div>
             <label
               htmlFor="title"
@@ -90,7 +172,7 @@ export default function TaskForm({ onClose }) {
                 htmlFor="status"
                 className="block text-sm font-medium text-gray-700 mb-1.5"
               >
-                Status
+                {isEditMode ? "Status" : "Initial Status"}
               </label>
               <div className="relative">
                 <select
@@ -135,8 +217,11 @@ export default function TaskForm({ onClose }) {
                 <option value="" disabled>
                   Select team member
                 </option>
-                <option value="aman_id">Aman Lathar</option>
-                <option value="jyoti_id">Jyoti Dhull</option>
+                {activeTeam.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.firstName + " " + user.lastName}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -205,7 +290,7 @@ export default function TaskForm({ onClose }) {
               type="submit"
               className="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors shadow-sm"
             >
-              Create Task
+              {isEditMode ? "Save Changes" : "Create Task"}
             </button>
           </div>
         </form>

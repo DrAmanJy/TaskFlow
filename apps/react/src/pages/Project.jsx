@@ -20,20 +20,6 @@ import ProjectForm from "../components/ProjectForm";
 import DeleteProject from "../components/DeleteProject";
 import TaskForm from "../components/TaskForm";
 
-const MOCK_TASKS = [
-  {
-    id: "t-001",
-    title: "Design database schema for user roles",
-    description:
-      "Create the Mongoose models and define relationships for RBAC.",
-    status: "done",
-    priority: "High",
-    commentsCount: 3,
-    attachmentsCount: 1,
-    assignee: { colorClass: "bg-indigo-500", initials: "JD" },
-  },
-];
-
 const iconMap = {
   layout: { component: Layout, color: "text-blue-600", bg: "bg-blue-50" },
   server: { component: Server, color: "text-emerald-600", bg: "bg-emerald-50" },
@@ -68,39 +54,15 @@ const formatDate = (isoString) => {
 
 export default function Project() {
   const [project, setProject] = useState(null);
-
+  const [task, setTask] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showTaskForm, setShowTaskForm] = useState(false);
-
+  const [showTaskFormModal, setShowTaskFormModal] = useState(false);
   const navigate = useNavigate();
   const { id } = useParams();
   const { isLogin } = useAuth();
-
-  const refreshProject = async () => {
-    try {
-      const res = await fetch(`http://localhost:3000/api/project/${id}`, {
-        method: "GET",
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        toast.error("Failed to fetch project");
-        return;
-      }
-
-      const data = await res.json();
-      setProject(data.project);
-    } catch (error) {
-      console.error(error);
-    }
-  };
   useEffect(() => {
-    if (!isLogin) {
-      toast.error("Please login to see project");
-      navigate("/login");
-      return;
-    }
+    if (!isLogin) return;
 
     const fetchProject = async () => {
       try {
@@ -123,6 +85,32 @@ export default function Project() {
 
     fetchProject();
   }, [id, isLogin, navigate]);
+  useEffect(() => {
+    if (!isLogin) return;
+    const fetchTasks = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:3000/api/tasks/project/${id}`,
+          {
+            method: "GET",
+            credentials: "include",
+          },
+        );
+
+        if (!res.ok) {
+          toast.error("Failed to fetch tasks");
+          return;
+        }
+
+        const data = await res.json();
+        setTask(data.tasks);
+      } catch (error) {
+        console.error("Network error:", error);
+      }
+    };
+
+    fetchTasks();
+  }, [id, isLogin]);
 
   if (!project) {
     return (
@@ -192,17 +180,16 @@ export default function Project() {
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold text-gray-900">Project Tasks</h2>
               <button
-                onClick={() => setShowTaskForm(true)}
+                onClick={() => setShowTaskFormModal(true)}
                 className="flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors bg-indigo-50 px-3 py-1.5 rounded-md"
               >
                 <Plus className="w-4 h-4" /> Add Task
               </button>
             </div>
             <div className="bg-slate-50 border border-slate-100/60 rounded-xl p-3 sm:p-4 flex flex-col gap-3">
-              {MOCK_TASKS.map((task) => (
-                <TaskCard key={task.id} task={task} />
-              ))}
-              {MOCK_TASKS.length === 0 && (
+              {task &&
+                task.map((task) => <TaskCard key={task.id} task={task} />)}
+              {task && task.length === 0 && (
                 <div className="text-center py-8 text-sm text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
                   No tasks assigned yet. Click "Add Task" to get started.
                 </div>
@@ -252,7 +239,7 @@ export default function Project() {
               <div className="space-y-3">
                 {project.team.map((member) => (
                   <div
-                    key={member._id}
+                    key={member.id}
                     className="flex items-center justify-between"
                   >
                     <div className="flex items-center gap-3">
@@ -278,18 +265,26 @@ export default function Project() {
         </div>
       </div>
 
-      {showTaskForm && <TaskForm onClose={() => setShowTaskForm(false)} />}
+      {showTaskFormModal && (
+        <TaskForm
+          projectId={project.id}
+          team={project.team}
+          onClose={() => setShowTaskFormModal(false)}
+          onSuccess={(newTask) => setTask([newTask, ...task])}
+        />
+      )}
       {showDeleteModal && (
         <DeleteProject
           title={project.title}
-          onclose={() => setShowDeleteModal(false)}
+          id={project.id}
+          onClose={() => setShowDeleteModal(false)}
         />
       )}
       {showEditModal && (
         <ProjectForm
           onClose={() => setShowEditModal(false)}
           existingProject={project}
-          refreshProject={refreshProject}
+          onSuccess={(updatedProj) => setProject({ ...updatedProj })}
         />
       )}
     </div>

@@ -1,135 +1,66 @@
+import React, { useState, useEffect } from "react";
 import { Search } from "lucide-react";
-import CreateButton from "../components/CreateButton";
 import TaskCard from "../components/TaskCard";
 import TaskColumn from "../components/TaskColumn";
 import Header from "../components/Header";
-const tasksData = [
-  // --- TO DO ---
-  {
-    id: "t-001",
-    title: "Setup MongoDB Schema",
-    description: "Define models for Users, Boards, and Tasks using Mongoose.",
-    status: "todo",
-    priority: "High",
-    commentsCount: 0,
-    attachmentsCount: 0,
-    assignee: {
-      initials: "",
-      colorClass: "bg-gray-300",
-    },
-  },
-  {
-    id: "t-002",
-    title: "Initialize Next.js Frontend",
-    description: "Setup the initial boilerplate and routing structure.",
-    status: "todo",
-    priority: "Low",
-    commentsCount: 0,
-    attachmentsCount: 0,
-    assignee: {
-      initials: "",
-      colorClass: "bg-indigo-300",
-    },
-  },
-
-  // --- IN PROGRESS ---
-  {
-    id: "t-003",
-    title: "Build Express API Routes",
-    description:
-      "Create CRUD endpoints for the tasks and handle JWT authentication.",
-    status: "in-progress",
-    priority: "Medium",
-    commentsCount: 3,
-    attachmentsCount: 0,
-    assignee: {
-      initials: "",
-      colorClass: "bg-gradient-to-r from-cyan-500 to-blue-500",
-    },
-  },
-  {
-    id: "t-004",
-    title: "Implement Session Management",
-    description:
-      "Secure the app using HTTP-only cookies and handle user tokens securely.",
-    status: "in-progress",
-    priority: "High",
-    commentsCount: 4,
-    attachmentsCount: 1,
-    assignee: {
-      initials: "AJ",
-      colorClass: "bg-purple-500",
-    },
-  },
-
-  // --- DONE ---
-  {
-    id: "t-005",
-    title: "Setup Project Repository",
-    description:
-      "Initialize Git, setup pnpm workspace, and configure ESLint/Prettier.",
-    status: "done",
-    priority: "High",
-    commentsCount: 2,
-    attachmentsCount: 0,
-    assignee: {
-      initials: "AJ",
-      colorClass: "bg-purple-500",
-    },
-  },
-  {
-    id: "t-006",
-    title: "Configure Tailwind CSS",
-    description:
-      "Set up theme colors, fonts, and custom utility classes in tailwind.config.js.",
-    status: "done",
-    priority: "Medium",
-    commentsCount: 1,
-    attachmentsCount: 0,
-    assignee: {
-      initials: "",
-      colorClass: "bg-teal-400",
-    },
-  },
-  {
-    id: "t-007",
-    title: "Design Database Architecture",
-    description: "Map out relational data structures for the MERN stack.",
-    status: "done",
-    priority: "High",
-    commentsCount: 8,
-    attachmentsCount: 3,
-    assignee: {
-      initials: "AJ",
-      colorClass: "bg-purple-500",
-    },
-  },
-  {
-    id: "t-008",
-    title: "Research Drag & Drop Libraries",
-    description:
-      "Compare dnd-kit vs react-beautiful-dnd for the kanban board columns.",
-    status: "done",
-    priority: "Low",
-    commentsCount: 0,
-    attachmentsCount: 0,
-    assignee: {
-      initials: "",
-      colorClass: "bg-gray-300",
-    },
-  },
-];
+import TaskForm from "../components/TaskForm"; // Make sure this is imported!
+import { useAuth } from "../context/authContext";
+import toast from "react-hot-toast";
 
 export default function Home() {
-  const todoTask = tasksData.filter((task) => task.status === "todo");
-  const inProgressTask = tasksData.filter(
-    (task) => task.status === "in-progress",
+  const { isLogin } = useAuth();
+  const [tasks, setTasks] = useState([]);
+  const [projects, setProjects] = useState([]); // NEW: State to hold projects
+  const [loading, setLoading] = useState(true);
+  const [showTaskFormModal, setShowTaskFormModal] = useState(false);
+
+  useEffect(() => {
+    if (!isLogin) return;
+
+    const fetchData = async () => {
+      try {
+        // Fetch both Tasks AND Projects at the same time for maximum speed!
+        const [tasksRes, projectsRes] = await Promise.all([
+          fetch("http://localhost:3000/api/tasks", { credentials: "include" }),
+          fetch("http://localhost:3000/api/projects", {
+            credentials: "include",
+          }),
+        ]);
+
+        const tasksData = await tasksRes.json();
+        const projectsData = await projectsRes.json();
+
+        if (!tasksRes.ok)
+          toast.error(tasksData.message || "Failed to fetch tasks");
+        if (!projectsRes.ok)
+          toast.error(projectsData.message || "Failed to fetch projects");
+
+        if (tasksRes.ok) setTasks(tasksData.tasks);
+        if (projectsRes.ok) setProjects(projectsData.projects); // Assuming your API sends { projects: [...] }
+      } catch (error) {
+        console.error("Network error:", error);
+        toast.error("A network error occurred.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [isLogin]);
+
+  const todoTask = tasks.filter((task) => task.status === "todo");
+  const inProgressTask = tasks.filter((task) => task.status === "in-progress");
+  const completedTask = tasks.filter(
+    (task) => task.status === "done" || task.status === "completed",
   );
-  const completedTask = tasksData.filter((task) => task.status === "done");
+
   return (
     <main className="flex-1 flex flex-col h-full">
-      {/* Top Header */}
-      <Header title={"All Tasks"} btnLabel={"Create Task"}>
+      <Header
+        title={"All Tasks"}
+        btnLabel={"Create Task"}
+        btnAction={() => setShowTaskFormModal(true)}
+      >
         <div className="relative hidden sm:block">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3">
             <Search className="w-4 h-4 text-gray-400" />
@@ -142,45 +73,54 @@ export default function Home() {
         </div>
       </Header>
 
-      {/* Board Area */}
+      {showTaskFormModal && (
+        <TaskForm
+          projects={projects}
+          onClose={() => setShowTaskFormModal(false)}
+          onSuccess={(newTask) => setTasks([newTask, ...tasks])}
+        />
+      )}
+
       <div className="p-6 flex-1 overflow-x-auto flex items-start gap-6">
-        {/* Column: To Do */}
-        <TaskColumn
-          taskLength={todoTask.length}
-          btnLabel={"Add Task"}
-          label={"To Do"}
-          dotColor={"bg-gray-400"}
-        >
-          {/* Task Card */}
-          {todoTask.map((task) => (
-            <TaskCard key={task.id} task={task} />
-          ))}
-        </TaskColumn>
+        {loading ? (
+          <div className="w-full text-center text-gray-500 py-10">
+            Loading tasks...
+          </div>
+        ) : (
+          <>
+            <TaskColumn
+              taskLength={todoTask.length}
+              btnLabel={"Add Task"}
+              label={"To Do"}
+              dotColor={"bg-gray-400"}
+            >
+              {todoTask.map((task) => (
+                <TaskCard key={task._id || task.id} task={task} />
+              ))}
+            </TaskColumn>
 
-        {/* Column: In Progress */}
-        <TaskColumn
-          taskLength={inProgressTask.length}
-          btnLabel={"Add Task"}
-          label={"In Progress"}
-          dotColor={"bg-blue-500"}
-        >
-          {/* Task Card */}
-          {inProgressTask.map((task) => (
-            <TaskCard key={task.id} task={task} />
-          ))}
-        </TaskColumn>
-        {/* Column: Done */}
+            <TaskColumn
+              taskLength={inProgressTask.length}
+              btnLabel={"Add Task"}
+              label={"In Progress"}
+              dotColor={"bg-blue-500"}
+            >
+              {inProgressTask.map((task) => (
+                <TaskCard key={task._id || task.id} task={task} />
+              ))}
+            </TaskColumn>
 
-        <TaskColumn
-          taskLength={completedTask.length}
-          label={"Done"}
-          dotColor={"bg-green-400"}
-        >
-          {/* Task Card */}
-          {completedTask.map((task) => (
-            <TaskCard key={task.id} task={task} />
-          ))}
-        </TaskColumn>
+            <TaskColumn
+              taskLength={completedTask.length}
+              label={"Done"}
+              dotColor={"bg-green-400"}
+            >
+              {completedTask.map((task) => (
+                <TaskCard key={task._id || task.id} task={task} />
+              ))}
+            </TaskColumn>
+          </>
+        )}
       </div>
     </main>
   );
