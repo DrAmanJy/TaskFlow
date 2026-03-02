@@ -6,8 +6,8 @@ import { useNavigate } from "react-router-dom";
 
 export default function ProjectForm({
   onClose,
+  onSuccess,
   existingProject = null,
-  refreshProject = null,
 }) {
   const { isLogin } = useAuth();
   const navigate = useNavigate();
@@ -56,14 +56,14 @@ export default function ProjectForm({
         toast.error(data.message || "Failed to save project");
         return;
       }
-      toast.success(
-        isEditMode
-          ? "Project updated successfully!"
-          : "Project created successfully!",
-      );
+
+      toast.success(data.message);
+
+      if (onSuccess && data.project) {
+        onSuccess(data.project);
+      }
 
       onClose();
-      if (isEditMode) refreshProject();
     } catch (error) {
       console.error("Submit error:", error);
       toast.error("Network error occurred");
