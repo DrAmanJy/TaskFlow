@@ -1,8 +1,10 @@
 import { Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 export default function DeleteProject({ onClose, title, id }) {
-const handleDelete = async () => {
+  const navigate = useNavigate();
+  const handleDelete = async () => {
     try {
       const res = await fetch(`http://localhost:3000/api/project/${id}`, {
         method: "DELETE",
@@ -16,6 +18,7 @@ const handleDelete = async () => {
 
       toast.success(data.message);
       onClose();
+      navigate("/projects");
     } catch (error) {
       console.error(error);
       toast.error("Failed to delete project. Please try again.");
