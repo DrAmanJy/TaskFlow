@@ -72,9 +72,14 @@ export default function TaskPage() {
   const [loading, setLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
-    if (!isLogin) return;
+    if (!isLogin) {
+      setLoading(false);
+      setLoadError("Please log in to view this task.");
+      return;
+    }
 
     const fetchTask = async () => {
       try {
@@ -86,10 +91,12 @@ export default function TaskPage() {
 
         if (!res.ok) {
           toast.error(data.message || "Failed to load task");
+          setLoadError(data.message);
           return;
         }
         setTask(data.task);
       } catch (error) {
+        setLoadError("Network error");
         toast.error("Network error");
       } finally {
         setLoading(false);
@@ -107,7 +114,13 @@ export default function TaskPage() {
     );
   }
 
-  if (!task) return null;
+  if (!task) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-500">
+        {loadError || "Task not found."}
+      </div>
+    );
+  }
 
   const StatusIcon = statusConfig[task.status]?.icon || Circle;
   const statusStyle = statusConfig[task.status] || statusConfig.todo;

@@ -10,12 +10,15 @@ import { useNavigate } from "react-router-dom";
 export default function Projects() {
   const [showFormModel, setShowFormModel] = useState(false);
   const [projects, setProjects] = useState(null);
+  const [loading, setLoading] = useState(true);
+
   const navigate = useNavigate();
   const { isLogin } = useAuth();
   useEffect(() => {
     const getProject = async () => {
       if (!isLogin) {
-        return;
+        setProjects([]);
+        setLoading(false);
       }
 
       try {
@@ -26,6 +29,7 @@ export default function Projects() {
 
         if (!res.ok) {
           toast.error("Failed to fetch project");
+          setProjects([]);
           return;
         }
 
@@ -33,12 +37,15 @@ export default function Projects() {
         setProjects(data.projects);
       } catch (error) {
         console.error("Network error:", error);
+        setProjects([]);
+      } finally {
+        setLoading(false);
       }
     };
 
     getProject();
   }, [isLogin, navigate]);
-  if (!projects) {
+  if (loading) {
     return (
       <div className="p-8 text-center text-gray-500">Loading projects...</div>
     );

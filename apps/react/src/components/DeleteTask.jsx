@@ -28,13 +28,23 @@ export default function DeleteTask({ onClose, title, taskId, projectId }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-task-title"
+    >
       <div className="bg-white rounded-xl shadow-lg w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         <div className="p-6">
           <div className="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 mb-4">
             <Trash2 className="w-6 h-6 text-red-600" />
           </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Task</h3>
+          <h3
+            id="delete-task-title"
+            className="text-xl font-bold text-gray-900 mb-2"
+          >
+            Delete Task
+          </h3>
           <p className="text-sm text-gray-500">
             Are you sure you want to delete <strong>{title}</strong>? This
             action cannot be undone.
