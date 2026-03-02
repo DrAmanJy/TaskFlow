@@ -109,7 +109,7 @@ export default function ProjectCard({ project }) {
       <div className="flex items-center justify-between pt-4 border-t border-gray-100">
         <div className="flex -space-x-2">
           {displayTeam.map((member, i) => (
-            <TeamBadge key={member._id} index={i} member={member} />
+            <TeamBadge key={member.id} index={i} member={member} />
           ))}
           {additionalMembersCount > 0 && (
             <div
