@@ -8,20 +8,18 @@ import { useAuth } from "../context/authContext";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 export default function Projects() {
-  const [showForm, setShowForm] = useState(false);
+  const [showFormModel, setShowFormModel] = useState(false);
   const [projects, setProjects] = useState(null);
   const navigate = useNavigate();
   const { isLogin } = useAuth();
   useEffect(() => {
     const getProject = async () => {
       if (!isLogin) {
-        toast.error("Please login to see projects");
-        navigate("/login");
         return;
       }
 
       try {
-        const res = await fetch(`http://localhost:5000/api/projects`, {
+        const res = await fetch(`http://localhost:3000/api/projects`, {
           method: "GET",
           credentials: "include",
         });
@@ -32,7 +30,7 @@ export default function Projects() {
         }
 
         const data = await res.json();
-        setProjects(data.project);
+        setProjects(data.projects);
       } catch (error) {
         console.error("Network error:", error);
       }
@@ -40,9 +38,10 @@ export default function Projects() {
 
     getProject();
   }, [isLogin, navigate]);
-  const toggleShowForm = () => setShowForm(showForm ? false : true);
   if (!projects) {
-  return <div className="p-8 text-center text-gray-500">Loading projects...</div>;
+    return (
+      <div className="p-8 text-center text-gray-500">Loading projects...</div>
+    );
   }
   return (
     <main className="flex-1 flex flex-col h-full">
@@ -50,7 +49,7 @@ export default function Projects() {
       <Header
         title={"All Projects"}
         btnLabel={"New Project"}
-        btnAction={toggleShowForm}
+        btnAction={() => setShowFormModel(true)}
       >
         <div className="relative hidden sm:block">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3">
@@ -63,19 +62,21 @@ export default function Projects() {
           />
         </div>
       </Header>
-      {showForm && <ProjectForm onClose={toggleShowForm} />}
+      {showFormModel && (
+        <ProjectForm
+          onClose={() => setShowFormModel(false)}
+          onSuccess={(newProj) => setProjects([newProj, ...projects])}
+        />
+      )}
 
-      {/* Projects Grid Area */}
       <div className="p-6 flex-1 overflow-y-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {/* Project Card */}
           {projects.map((project) => (
             <ProjectCard key={project.id} project={project} />
           ))}
 
-          {/*Create New Card */}
           <div
-            onClick={toggleShowForm}
+            onClick={() => setShowFormModel(true)}
             className="bg-transparent border-2 border-dashed border-gray-300 rounded-xl p-5 hover:border-indigo-400 hover:bg-indigo-50/50 transition-all cursor-pointer flex flex-col items-center justify-center min-h-60 text-gray-500 hover:text-indigo-600 group"
           >
             <div className="w-12 h-12 rounded-full bg-gray-100 group-hover:bg-indigo-100 flex items-center justify-center mb-3 transition-colors">
