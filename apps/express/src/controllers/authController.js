@@ -66,14 +66,32 @@ export const refreshAccessToken = async (req, res) => {
   }
 
   const accessToken = user.generateAccessToken();
+  const newRefreshToken = user.generateRefreshToken();
+  user.hashRefreshToken(newRefreshToken);
+  await user.save();
 
-  return res.status(200).json({
-    success: true,
-    accessToken,
-  });
+  return res
+    .status(200)
+    .cookie("refreshToken", newRefreshToken, cookieOptions)
+    .json({
+      success: true,
+      accessToken,
+    });
 };
 
-export const logout = (req, res) => {
-  res.cookie("refreshToken", "", { ...cookieOptions, expires: new Date(0) });
-  res.status(200).json({ success: true, message: "Logged out successfully" });
+export const logout = async (req, res) => {
+  if (req.user?._id) {
+    await User.findByIdAndUpdate(req.user._id, {
+      $unset: { refreshToken: 1 },
+    });
+  }
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
+  res.status(200).json({
+    success: true,
+    message: "Logged out successfully",
+  });
 };

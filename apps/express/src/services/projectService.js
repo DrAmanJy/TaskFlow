@@ -163,7 +163,7 @@ export const removeTeamMember = async (userEmail, projectId, requesterId) => {
 
   await Task.updateMany(
     { project: projectId },
-    { $pull: { assignees: userToRemove } },
+    { $pull: { assignee: { userId: userToRemove._id } } },
   );
   return updatedProject;
 };
@@ -192,7 +192,7 @@ export const leaveProject = async (projectId, userId) => {
 
   await Task.updateMany(
     { project: projectId },
-    { $pull: { assignees: userId } },
+    { $pull: { assignee: { userId: userId } } },
   );
 
   return updatedProject;

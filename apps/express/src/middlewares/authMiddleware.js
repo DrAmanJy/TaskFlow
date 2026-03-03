@@ -14,7 +14,12 @@ export const requireAuth = async (req, res, next) => {
     throw new AppError("Invalid token format", 401);
   }
 
-  const decoded = jwt.verify(accessToken, process.env.JWT_ACCESS_SECRET);
+  let decoded;
+  try {
+    decoded = jwt.verify(accessToken, process.env.JWT_ACCESS_SECRET);
+  } catch {
+    throw new AppError("Invalid or expired access token", 401);
+  }
 
   const user = await User.findById(decoded.sub).select(
     "-password -refreshToken",

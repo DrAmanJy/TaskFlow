@@ -20,7 +20,7 @@ export const createUser = async (userData) => {
     throw new AppError("All fields are required", 400);
   }
 
-  const existingUser = await User.findOne({ email });
+  const existingUser = await User.findOne({ email: email.toLowerCase() });
   if (existingUser) {
     throw new AppError("Email already exists", 400);
   }
@@ -37,7 +37,7 @@ export const authenticateUser = async (email, password) => {
   if (!email || !password) {
     throw new AppError("All fields are required", 400);
   }
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email: email.toLowerCase() });
   if (!user) {
     throw new AppError("Invalid email, user not found", 404);
   }
@@ -56,7 +56,7 @@ export const updateUser = async (userId, updateData) => {
 
   if (updateData.email) {
     const emailExists = await User.findOne({
-      email: updateData.email,
+      email: updateData.email.toLowerCase(),
       _id: { $ne: userId },
     });
     if (emailExists) throw new AppError("Email is already taken", 400);

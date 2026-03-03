@@ -13,12 +13,8 @@ import taskRouter from "./routes/taskRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const mongoUri = process.env.MONGO_URI;
 
-// Connect to Database
-connectDb();
-
-// Middleware
+// 1. Middleware Setup
 app.use(
   cors({
     origin: ["http://localhost:5173", process.env.WEB_URI],
@@ -30,18 +26,28 @@ app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(cookieParser());
 
-// Routes
+// 2. Routes
 app.use("/api/auth", authRouter);
 app.use("/api/projects", projectRouter);
 app.use("/api/tasks", taskRouter);
 app.use("/api/user", userRouter);
 
-// Error Handler
+// 3. 404 & Error Handler
 app.use((req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 app.use(errorHandler);
 
-app.listen(PORT, () =>
-  console.log(`Server is running on http://localhost:${PORT}`),
-);
+(async () => {
+  try {
+    await connectDb();
+    app.listen(PORT, () => {
+      console.log(`Server is running on http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error(
+      "Critical: Server failed to start due to DB connection error.",
+    );
+    process.exit(1);
+  }
+})();

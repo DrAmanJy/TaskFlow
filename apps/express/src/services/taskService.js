@@ -127,16 +127,20 @@ export const getMyTasks = async (userId) => {
 };
 
 export const getSingleTask = async (taskId, userId) => {
-  const task = await (
-    await findTaskOrThrow(taskId)
-  ).populate("project", "title icon");
+  const task = await findTaskOrThrow(taskId);
+  await task.populate("project", "title icon");
+
+  const project = await Project.findById(task.project._id || task.project)
+    .select("createdBy")
+    .lean();
 
   const isCreator = idOf(task.createdBy) === idOf(userId);
   const isAssignee = task.assignee.some(
     ({ userId: aId }) => idOf(aId) === idOf(userId),
   );
+  const isProjectOwner = project && idOf(project.createdBy) === idOf(userId);
 
-  if (!isCreator && !isAssignee) {
+  if (!isCreator && !isAssignee && !isProjectOwner) {
     throw new AppError("Not authorized to read this task", 403);
   }
 
