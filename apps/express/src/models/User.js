@@ -1,4 +1,7 @@
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 const userSchema = new mongoose.Schema(
   {
@@ -40,29 +43,63 @@ const userSchema = new mongoose.Schema(
       default: "user",
       trim: true,
     },
+    refreshToken: { type: String },
     isActive: {
       type: Boolean,
       default: true,
     },
-    projects: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Project",
-      },
-    ],
   },
   {
     timestamps: true,
+    versionKey: false,
     toJSON: {
       virtuals: true,
       transform: function (doc, ret) {
         delete ret._id;
-        delete ret.__v;
+        delete ret.password;
+        delete ret.refreshToken;
       },
     },
+    toObject: { virtuals: true },
   },
 );
 
-const User = mongoose.model("User", userSchema);
+userSchema.virtual("fullName").get(function () {
+  return `${this.firstName} ${this.lastName}`.trim();
+});
 
+userSchema.pre("save", async function () {
+  if (this.isModified("password")) {
+    this.password = await bcrypt.hash(this.password, 10);
+  }
+});
+
+userSchema.methods.generateAccessToken = function () {
+  return jwt.sign(
+    { sub: this._id.toString(), role: this.role },
+    process.env.JWT_ACCESS_SECRET,
+    { expiresIn: "30m" },
+  );
+};
+
+userSchema.methods.generateRefreshToken = function () {
+  return jwt.sign(
+    { sub: this._id.toString() },
+    process.env.JWT_REFRESH_SECRET,
+    { expiresIn: "7d" },
+  );
+};
+
+userSchema.methods.hashRefreshToken = function (rawToken) {
+  this.refreshToken = crypto
+    .createHash("sha256")
+    .update(rawToken)
+    .digest("hex");
+};
+
+userSchema.methods.comparePassword = async function (password) {
+  return await bcrypt.compare(password, this.password);
+};
+
+const User = mongoose.model("User", userSchema);
 export default User;

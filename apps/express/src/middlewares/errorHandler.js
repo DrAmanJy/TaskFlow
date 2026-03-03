@@ -13,7 +13,10 @@ export default function errorHandler(err, req, res, next) {
     console.error("ERROR", error);
     res.status(500).json({
       success: false,
-      message: "Something went very wrong!",
+      message:
+        process.env.NODE_ENV === "development"
+          ? error.message
+          : "Something went very wrong!",
     });
   }
 }

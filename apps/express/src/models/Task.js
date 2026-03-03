@@ -2,13 +2,13 @@ import mongoose from "mongoose";
 
 const taskSchema = new mongoose.Schema(
   {
-    title: { type: String, required: true, trim: true },
+    title: { type: String, required: [true, "Title is required"], trim: true },
     description: { type: String, default: "" },
 
     project: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Project",
-      required: true,
+      required: [true, "Project ID is required"],
     },
     assignee: [
       {
@@ -33,18 +33,8 @@ const taskSchema = new mongoose.Schema(
       default: "Low",
     },
     tags: [{ type: String, trim: true, default: "none" }],
-
-    position: { type: Number, default: 0 },
-
+    position: { type: Number, default: Date.now },
     dueDate: { type: Date },
-
-    comments: [
-      {
-        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-        text: { type: String, required: true },
-        createdAt: { type: Date, default: Date.now },
-      },
-    ],
     attachments: [
       {
         url: { type: String },
@@ -54,15 +44,19 @@ const taskSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    versionKey: false,
     toJSON: {
       virtuals: true,
       transform: function (doc, ret) {
         delete ret._id;
-        delete ret.__v;
       },
     },
   },
 );
+
+taskSchema.index({ project: 1 });
+taskSchema.index({ status: 1 });
+taskSchema.index({ "assignee.userId": 1 });
 
 const Task = mongoose.model("Task", taskSchema);
 export default Task;

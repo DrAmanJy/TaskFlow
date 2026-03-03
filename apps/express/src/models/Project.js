@@ -2,7 +2,11 @@ import mongoose from "mongoose";
 
 const projectSchema = new mongoose.Schema(
   {
-    title: { type: String, required: [true, "Title is required"], trim: true },
+    title: {
+      type: String,
+      required: [true, "Title is required"],
+      trim: true,
+    },
     description: {
       type: String,
       default: "",
@@ -21,7 +25,7 @@ const projectSchema = new mongoose.Schema(
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: [true, "CreatedBy is required"],
     },
     team: [
       {
@@ -32,15 +36,18 @@ const projectSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    versionKey: false,
     toJSON: {
       virtuals: true,
       transform: function (doc, ret) {
         delete ret._id;
-        delete ret.__v;
       },
     },
   },
 );
+
+projectSchema.index({ team: 1 });
+projectSchema.index({ createdBy: 1 });
 
 const Project = mongoose.model("Project", projectSchema);
 export default Project;

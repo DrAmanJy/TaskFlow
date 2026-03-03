@@ -1,14 +1,8 @@
-import mongoose from "mongoose";
-import Project from "../models/Project.js";
-import User from "../models/User.js";
+import * as projectService from "../services/projectService.js";
 import AppError from "../utils/AppError.js";
-export const readProjects = async (req, res) => {
-  const { projects: projectIds } = req.user;
 
-  const projects = await Project.find({ _id: { $in: projectIds } })
-    .populate("createdBy", "firstName lastName profile")
-    .populate("team", "firstName lastName profile")
-    .sort({ createdAt: -1 });
+export const readProjects = async (req, res) => {
+  const projects = await projectService.getProjectsForUser(req.user._id);
 
   return res.status(200).json({
     success: true,
@@ -18,48 +12,16 @@ export const readProjects = async (req, res) => {
 
 export const readProject = async (req, res) => {
   const { id } = req.params;
+  const project = await projectService.getProjectById(id, req.user._id);
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new AppError("Invalid project ID format", 400);
-  }
-
-  const project = await Project.findById(id)
-    .populate("createdBy", "firstName lastName profile")
-    .populate("team", "firstName lastName profile");
-
-  if (!project) {
-    throw new AppError("Project not found", 404);
-  }
-  const userId = req.user._id.toString();
-  const isCreator =
-    (project.createdBy?._id || project.createdBy).toString() === userId;
-  const isTeamMember = project.team.some(
-    (member) => (member?._id || member).toString() === userId,
-  );
-  if (!isCreator && !isTeamMember) {
-    throw new AppError("Not authorized to read this project", 403);
-  }
-
-  return res.status(200).json({ success: true, project });
-};
-export const createProject = async (req, res) => {
-  const { title, description, status, icon } = req.body;
-  const user = req.user;
-
-  if (!title) {
-    throw new AppError("Title is required", 400);
-  }
-
-  const project = await Project.create({
-    title,
-    description,
-    status,
-    icon,
-    createdBy: user._id,
-    team: [user._id],
+  return res.status(200).json({
+    success: true,
+    project,
   });
+};
 
-  await User.updateOne({ _id: user._id }, { $push: { projects: project._id } });
+export const createProject = async (req, res) => {
+  const project = await projectService.createNewProject(req.body, req.user._id);
 
   res.status(201).json({
     success: true,
@@ -67,33 +29,14 @@ export const createProject = async (req, res) => {
     project,
   });
 };
+
 export const updateProject = async (req, res) => {
   const { id } = req.params;
-  const { _id: userId } = req.user;
-
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new AppError("Invalid project ID format", 400);
-  }
-  const project = await Project.findById(id);
-  if (!project) {
-    throw new AppError("Project not found", 404);
-  }
-  if (userId.toString() !== project.createdBy.toString()) {
-    throw new AppError("Not authorized to edit this project", 403);
-  }
-  const { title, description, status, icon } = req.body;
-  const updateData = {};
-  if (title !== undefined) updateData.title = title;
-  if (description !== undefined) updateData.description = description;
-  if (status !== undefined) updateData.status = status;
-  if (icon !== undefined) updateData.icon = icon;
-  const updatedProject = await Project.findByIdAndUpdate(
+  const updatedProject = await projectService.updateProjectDetails(
     id,
-    { $set: updateData },
-    { new: true, runValidators: true },
-  )
-    .populate("createdBy", "firstName lastName profile")
-    .populate("team", "firstName lastName profile");
+    req.body,
+    req.user._id,
+  );
 
   return res.status(200).json({
     success: true,
@@ -101,28 +44,52 @@ export const updateProject = async (req, res) => {
     project: updatedProject,
   });
 };
+
 export const deleteProject = async (req, res) => {
   const { id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new AppError("Invalid project ID format", 400);
-  }
+  const result = await projectService.removeProject(id, req.user._id, {
+    cascadeDeleteTasks: true,
+  });
 
-  const project = await Project.findById(id);
+  return res.status(200).json({
+    success: true,
+    message: result.message,
+  });
+};
 
-  if (!project) {
-    throw new AppError("Project not found", 404);
-  }
-
-  if (project.createdBy.toString() !== req.user._id.toString()) {
-    throw new AppError("Not authorized to delete this project", 403);
-  }
-
-  await project.deleteOne();
-
-  await User.updateMany({ projects: id }, { $pull: { projects: id } });
-
-  return res
-    .status(200)
-    .json({ success: true, message: "Project deleted successfully" });
+export const addTeamMember = async (req, res) => {
+  const { email } = req.body;
+  const project = await projectService.addTeamMember(
+    email,
+    req.params.id,
+    req.user._id,
+  );
+  return res.status(200).json({
+    success: true,
+    message: "User successfully added to team",
+  });
+};
+export const removeTeamMember = async (req, res) => {
+  const { email } = req.body;
+  const project = await projectService.removeTeamMember(
+    email,
+    req.params.id,
+    req.user._id,
+  );
+  return res.status(200).json({
+    success: true,
+    message: "User successfully removed from team",
+  });
+};
+export const leaveProject = async (req, res) => {
+  const { email } = req.body;
+  const project = await projectService.leaveProject(
+    req.params.id,
+    req.user._id,
+  );
+  return res.status(200).json({
+    success: true,
+    message: "User successfully removed from team",
+  });
 };
