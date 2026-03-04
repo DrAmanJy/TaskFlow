@@ -1,5 +1,37 @@
+import Project from "../models/Project.js";
 import * as projectService from "../services/projectService.js";
 import AppError from "../utils/AppError.js";
+
+export const searchProjects = async (req, res) => {
+  const { q } = req.query;
+  const userId = req.user._id;
+
+  if (!q) {
+    throw new AppError("Search query is required", 400);
+  }
+
+  const searchRegex = new RegExp(q, "i");
+  console.log(searchRegex);
+  const projects = await Project.find({
+    $and: [
+      {
+        $or: [{ createdBy: userId }, { team: userId }],
+      },
+      {
+        $or: [{ title: searchRegex }, { description: searchRegex }],
+      },
+    ],
+  })
+    .select("title description status icon createdAt")
+    .sort({ updatedAt: -1 })
+    .limit(20);
+
+  return res.status(200).json({
+    success: true,
+    count: projects.length,
+    projects,
+  });
+};
 
 export const readProjects = async (req, res) => {
   const projects = await projectService.getProjectsForUser(req.user._id);
@@ -70,6 +102,7 @@ export const addTeamMember = async (req, res) => {
     message: "User successfully added to team",
   });
 };
+
 export const removeTeamMember = async (req, res) => {
   const { email } = req.body;
   const project = await projectService.removeTeamMember(
@@ -82,6 +115,7 @@ export const removeTeamMember = async (req, res) => {
     message: "User successfully removed from team",
   });
 };
+
 export const leaveProject = async (req, res) => {
   const { email } = req.body;
   const project = await projectService.leaveProject(
