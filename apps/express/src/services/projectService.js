@@ -14,7 +14,9 @@ const idOf = (ref) => {
 
 export const getProjectsForUser = async (userId) => {
   validateIds({ User: userId });
-  return await Project.find({ team: userId })
+  return await Project.find({
+    $or: [{ createdBy: userId }, { team: userId }],
+  })
     .populate("createdBy", "firstName lastName profile")
     .populate("team", "firstName lastName profile")
     .sort({ createdAt: -1 });
@@ -32,8 +34,8 @@ export const getProjectById = async (projectId, userId) => {
   }
 
   const isMember = project.team.some((member) => idOf(member) === idOf(userId));
-
-  if (!isMember) {
+  const isOwner = project.createdBy._id.toString() === userId.toString();
+  if (!isMember && !isOwner) {
     throw new AppError("Not authorized to read this project", 403);
   }
 
@@ -59,7 +61,6 @@ export const createNewProject = async (projectData, userId) => {
     status,
     icon,
     createdBy: userId,
-    team: [userId],
   });
 };
 

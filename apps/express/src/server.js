@@ -10,6 +10,7 @@ import userRouter from "./routes/userRoutes.js";
 import errorHandler from "./middlewares/errorHandler.js";
 import AppError from "./utils/AppError.js";
 import taskRouter from "./routes/taskRoutes.js";
+import chatRouter from "./routes/chatRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -31,6 +32,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/projects", projectRouter);
 app.use("/api/tasks", taskRouter);
 app.use("/api/user", userRouter);
+app.use("/api/chat", chatRouter);
 
 // 3. 404 & Error Handler
 app.use((req, res, next) => {

@@ -2,39 +2,7 @@ import mongoose from "mongoose";
 import Task from "../models/Task.js";
 import Project from "../models/Project.js";
 import AppError from "../utils/AppError.js";
-
-// --- REUSABLE HELPERS ---
-
-const idOf = (ref) => {
-  if (!ref) return null;
-  return ref._id ? ref._id.toString() : ref.toString();
-};
-
-const findTaskOrThrow = async (taskId) => {
-  if (!mongoose.Types.ObjectId.isValid(taskId)) {
-    throw new AppError("Invalid task ID format", 400);
-  }
-  const task = await Task.findById(taskId);
-  if (!task) throw new AppError("Task not found", 404);
-  return task;
-};
-
-const verifyProjectAccess = async (projectId, userId) => {
-  const project = await Project.findById(projectId)
-    .select("createdBy team")
-    .lean();
-  if (!project) throw new AppError("Project not found", 404);
-
-  const isOwner = idOf(project.createdBy) === idOf(userId);
-  const isMember = project.team.some((mId) => idOf(mId) === idOf(userId));
-
-  if (!isOwner && !isMember) {
-    throw new AppError("Not authorized to access tasks in this project", 403);
-  }
-  return project;
-};
-
-// --- OPERATIONS ---
+import { validateIds } from "../utils/idValidator.js";
 
 export const createNewTask = async (taskData, creatorId) => {
   const { title, projectId, assigneeId, position, ...otherData } = taskData;
@@ -164,4 +132,34 @@ export const moveTask = async (taskId, { status, position }, userId) => {
 
   await task.save();
   return await task.populate("assignee.userId", "firstName lastName profile");
+};
+
+const idOf = (ref) => {
+  if (!ref) return null;
+  return ref._id ? ref._id.toString() : ref.toString();
+};
+
+const findTaskOrThrow = async (taskId) => {
+  if (!mongoose.Types.ObjectId.isValid(taskId)) {
+    throw new AppError("Invalid task ID format", 400);
+  }
+  const task = await Task.findById(taskId);
+  if (!task) throw new AppError("Task not found", 404);
+  return task;
+};
+
+const verifyProjectAccess = async (projectId, userId) => {
+  validateIds({ Project: projectId });
+  const project = await Project.findById(projectId)
+    .select("createdBy team")
+    .lean();
+  if (!project) throw new AppError("Project not found", 404);
+
+  const isOwner = idOf(project.createdBy) === idOf(userId);
+  const isMember = project.team.some((mId) => idOf(mId) === idOf(userId));
+
+  if (!isOwner && !isMember) {
+    throw new AppError("Not authorized to access tasks in this project", 403);
+  }
+  return project;
 };
