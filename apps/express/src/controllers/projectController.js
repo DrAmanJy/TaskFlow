@@ -1,6 +1,7 @@
 import Project from "../models/Project.js";
 import * as projectService from "../services/projectService.js";
 import AppError from "../utils/AppError.js";
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 export const searchProjects = async (req, res) => {
   const { q } = req.query;
@@ -10,8 +11,7 @@ export const searchProjects = async (req, res) => {
     throw new AppError("Search query is required", 400);
   }
 
-  const searchRegex = new RegExp(q, "i");
-  console.log(searchRegex);
+  const searchRegex = new RegExp(escapeRegex(q), "i");
   const projects = await Project.find({
     $and: [
       {

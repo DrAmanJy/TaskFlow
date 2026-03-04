@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Task from "../models/Task.js";
 import Project from "../models/Project.js";
 import AppError from "../utils/AppError.js";
+import { validateIds } from "../utils/idValidator.js";
 
 export const createNewTask = async (taskData, creatorId) => {
   const { title, projectId, assigneeId, position, ...otherData } = taskData;
@@ -148,6 +149,7 @@ const findTaskOrThrow = async (taskId) => {
 };
 
 const verifyProjectAccess = async (projectId, userId) => {
+  validateIds({ Project: projectId });
   const project = await Project.findById(projectId)
     .select("createdBy team")
     .lean();

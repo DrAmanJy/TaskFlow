@@ -14,9 +14,12 @@ export const syncMessages = async (req, res) => {
     "project",
     "team createdBy",
   );
+
   if (
     !task ||
-    (!task.project.team.includes(userId) &&
+    (!task.project.team.some(
+      (member) => member.toString() === userId.toString(),
+    ) &&
       task.project.createdBy.toString() !== userId.toString())
   ) {
     throw new AppError("Not authorized to view this chat", 403);
