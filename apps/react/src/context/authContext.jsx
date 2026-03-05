@@ -4,44 +4,44 @@ export const AuthContext = createContext(null);
 export default function AuthProvider({ children }) {
   const [user, setUser] = useState(undefined);
   const [isLogin, setIsLogin] = useState(false);
-  useEffect(() => {
-    let isMounted = true;
+  // useEffect(() => {
+  //   let isMounted = true;
 
-    const getUser = async () => {
-      try {
-        const res = await fetch("http://localhost:3000/api/user/me", {
-          method: "GET",
-          credentials: "include",
-        });
+  //   const getUser = async () => {
+  //     try {
+  //       const res = await fetch("http://localhost:3000/api/user/me", {
+  //         method: "GET",
+  //         credentials: "include",
+  //       });
 
-        if (!res.ok) {
-          if (isMounted) {
-            setUser(null);
-            setIsLogin(false);
-          }
-          return;
-        }
+  //       if (!res.ok) {
+  //         if (isMounted) {
+  //           setUser(null);
+  //           setIsLogin(false);
+  //         }
+  //         return;
+  //       }
 
-        const data = await res.json();
+  //       const data = await res.json();
 
-        if (isMounted) {
-          setUser(data.user);
-          setIsLogin(true);
-        }
-      } catch (error) {
-        if (isMounted) {
-          setUser(null);
-          setIsLogin(false);
-        }
-      }
-    };
+  //       if (isMounted) {
+  //         setUser(data.user);
+  //         setIsLogin(true);
+  //       }
+  //     } catch (error) {
+  //       if (isMounted) {
+  //         setUser(null);
+  //         setIsLogin(false);
+  //       }
+  //     }
+  //   };
 
-    getUser();
+  //   getUser();
 
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  //   return () => {
+  //     isMounted = false;
+  //   };
+  // }, []);
   const register = async (userInfo) => {
     try {
       const res = await fetch("http://localhost:3000/api/auth/register", {
