@@ -105,7 +105,7 @@ export const removeProject = async (
   }
 
   await project.deleteOne();
-  return { message: "Project deleted successfully" };
+  return project;
 };
 
 export const addTeamMember = async (userEmail, projectId, requesterId) => {
@@ -131,7 +131,7 @@ export const addTeamMember = async (userEmail, projectId, requesterId) => {
     projectId,
     { $addToSet: { team: userToAdd._id } },
     { new: true },
-  ).populate("team", "firstName lastName profile email");
+  ).populate("team", "firstName lastName profile");
 
   return updatedProject;
 };
@@ -160,7 +160,7 @@ export const removeTeamMember = async (userEmail, projectId, requesterId) => {
     projectId,
     { $pull: { team: userToRemove._id } },
     { new: true },
-  ).populate("team", "firstName lastName profile email");
+  ).populate("team", "firstName lastName profile");
 
   await Task.updateMany(
     { project: projectId },
@@ -189,7 +189,7 @@ export const leaveProject = async (projectId, userId) => {
     projectId,
     { $pull: { team: userId } },
     { new: true },
-  ).populate("team", "firstName lastName profile email");
+  ).populate("team", "firstName lastName profile");
 
   await Task.updateMany(
     { project: projectId },
