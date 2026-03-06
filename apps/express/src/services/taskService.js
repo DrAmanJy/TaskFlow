@@ -85,7 +85,7 @@ export const deleteTaskById = async (taskId, userId) => {
   }
 
   await task.deleteOne();
-  return { message: "Task deleted successfully" };
+  return task;
 };
 
 export const getMyTasks = async (userId) => {

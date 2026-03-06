@@ -18,8 +18,8 @@ export const register = async (req, res) => {
     .status(201)
     .cookie("refreshToken", refreshToken, cookieOptions)
     .json({
-      success: true,
-      user: newUser,
+      status: "success",
+      data: newUser,
       accessToken,
     });
 };
@@ -38,8 +38,8 @@ export const login = async (req, res) => {
     .status(200)
     .cookie("refreshToken", refreshToken, cookieOptions)
     .json({
-      success: true,
-      user: user,
+      status: "success",
+      data: user,
       accessToken,
     });
 };

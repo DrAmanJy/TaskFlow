@@ -1,6 +1,5 @@
+import { sendResponse } from "../utils/sendResponse.js";
+
 export const getUserInfo = (req, res) => {
-    return res.status(200).json({
-      success: true,
-      user: req.user,
-    });
+  return sendResponse(res, 200, req.user);
 };

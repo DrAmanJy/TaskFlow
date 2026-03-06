@@ -1,6 +1,7 @@
 import Project from "../models/Project.js";
 import * as projectService from "../services/projectService.js";
 import AppError from "../utils/AppError.js";
+import { sendResponse } from "../utils/sendResponse.js";
 const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 export const searchProjects = async (req, res) => {
@@ -25,41 +26,23 @@ export const searchProjects = async (req, res) => {
     .select("title description status icon createdAt")
     .sort({ updatedAt: -1 })
     .limit(20);
-
-  return res.status(200).json({
-    success: true,
-    count: projects.length,
-    projects,
-  });
+  return sendResponse(res, 200, projects);
 };
 
 export const readProjects = async (req, res) => {
   const projects = await projectService.getProjectsForUser(req.user._id);
-
-  return res.status(200).json({
-    success: true,
-    projects: projects,
-  });
+  return sendResponse(res, 200, projects);
 };
 
 export const readProject = async (req, res) => {
   const { id } = req.params;
   const project = await projectService.getProjectById(id, req.user._id);
-
-  return res.status(200).json({
-    success: true,
-    project,
-  });
+  return sendResponse(res, 200, project);
 };
 
 export const createProject = async (req, res) => {
   const project = await projectService.createNewProject(req.body, req.user._id);
-
-  res.status(201).json({
-    success: true,
-    message: "Project created successfully",
-    project,
-  });
+  return sendResponse(res, 201, project, "Project created successfully");
 };
 
 export const updateProject = async (req, res) => {
@@ -69,25 +52,16 @@ export const updateProject = async (req, res) => {
     req.body,
     req.user._id,
   );
-
-  return res.status(200).json({
-    success: true,
-    message: "Project updated successfully",
-    project: updatedProject,
-  });
+  return sendResponse(res, 200, updateProject, "Project updated successfully");
 };
 
 export const deleteProject = async (req, res) => {
   const { id } = req.params;
 
-  const result = await projectService.removeProject(id, req.user._id, {
+  const project = await projectService.removeProject(id, req.user._id, {
     cascadeDeleteTasks: true,
   });
-
-  return res.status(200).json({
-    success: true,
-    message: result.message,
-  });
+  return sendResponse(res, 200, project, "Project deleted successfully");
 };
 
 export const addTeamMember = async (req, res) => {
@@ -97,10 +71,7 @@ export const addTeamMember = async (req, res) => {
     req.params.id,
     req.user._id,
   );
-  return res.status(200).json({
-    success: true,
-    message: "User successfully added to team",
-  });
+  return sendResponse(res, 200, project, "User successfully added to team");
 };
 
 export const removeTeamMember = async (req, res) => {
@@ -110,20 +81,13 @@ export const removeTeamMember = async (req, res) => {
     req.params.id,
     req.user._id,
   );
-  return res.status(200).json({
-    success: true,
-    message: "User successfully removed from team",
-  });
+  return sendResponse(res, 200, project, "User successfully removed from team");
 };
 
 export const leaveProject = async (req, res) => {
-  const { email } = req.body;
   const project = await projectService.leaveProject(
     req.params.id,
     req.user._id,
   );
-  return res.status(200).json({
-    success: true,
-    message: "User successfully removed from team",
-  });
+  return sendResponse(res, 200, project, "User successfully removed from team");
 };

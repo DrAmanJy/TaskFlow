@@ -3,6 +3,7 @@ import Project from "../models/Project.js";
 import Task from "../models/Task.js";
 import AppError from "../utils/AppError.js";
 import { validateIds } from "../utils/idValidator.js";
+import { sendResponse } from "../utils/sendResponse.js";
 
 export const syncMessages = async (req, res) => {
   const { taskId } = req.params;
@@ -29,12 +30,7 @@ export const syncMessages = async (req, res) => {
     .populate("user", "firstName lastName profile")
     .sort({ createdAt: 1 })
     .limit(50);
-
-  return res.status(200).json({
-    success: true,
-    count: messages.length,
-    messages,
-  });
+  return sendResponse(res, 200, messages);
 };
 export const sendMessage = async (req, res) => {
   const { text } = req.body;
@@ -75,8 +71,7 @@ export const sendMessage = async (req, res) => {
     text: text.trim(),
     user: userId,
   });
-
-  return res.status(201).json({ success: true, message });
+  return sendResponse(res, 201, message);
 };
 export const editMessage = async (req, res) => {
   const { text } = req.body;
@@ -109,12 +104,7 @@ export const editMessage = async (req, res) => {
     },
     { new: true, runValidators: true },
   );
-
-  return res.status(200).json({
-    success: true,
-    message: "Message successfully edited",
-    data: updatedMessage,
-  });
+return sendResponse(res, 200, updatedMessage, "Message successfully edited");
 };
 export const deleteMessage = async (req, res) => {
   const { id } = req.params;
@@ -134,8 +124,5 @@ export const deleteMessage = async (req, res) => {
     );
   }
 
-  return res.status(200).json({
-    success: true,
-    message: "Message successfully deleted",
-  });
+  return sendResponse(res, 200, deletedMessage, "Message successfully deleted");
 };
