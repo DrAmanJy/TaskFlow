@@ -1,0 +1,31 @@
+import { apiClient } from "./apiClient";
+
+export const TaskService = {
+  createTask: (data) =>
+    apiClient("/tasks", { method: "POST", body: JSON.stringify(data) }),
+
+  search: (query) => apiClient(`/tasks/search?q=${query}`),
+
+  getUserTask: () => apiClient("/tasks"),
+
+  getTaskById: (taskId) => apiClient(`/task/${taskId}`),
+
+  getTaskByProjectId: (projectId) => apiClient(`/task/projects/${projectId}`),
+
+  updateTask: (taskId, data) =>
+    apiClient(`/tasks/${taskId}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+
+  deleteTask: (taskId) =>
+    apiClient(`/tasks/${taskId}`, {
+      method: "DELETE",
+    }),
+
+  moveTask: (taskId, data) =>
+    apiClient(`/tasks/${taskId}/status`, {
+      method: "PATCH",
+      body: JSON.parse(data),
+    }),
+};
