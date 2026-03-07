@@ -1,103 +1,75 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useState, useEffect, useContext } from "react";
+import { authService } from "../api/authService";
+import toast from "react-hot-toast";
 
-export const AuthContext = createContext(null);
-export default function AuthProvider({ children }) {
-  const [user, setUser] = useState(undefined);
-  const [isLogin, setIsLogin] = useState(false);
-  // useEffect(() => {
-  //   let isMounted = true;
+const AuthContext = createContext();
 
-  //   const getUser = async () => {
-  //     try {
-  //       const res = await fetch("http://localhost:3000/api/user/me", {
-  //         method: "GET",
-  //         credentials: "include",
-  //       });
-
-  //       if (!res.ok) {
-  //         if (isMounted) {
-  //           setUser(null);
-  //           setIsLogin(false);
-  //         }
-  //         return;
-  //       }
-
-  //       const data = await res.json();
-
-  //       if (isMounted) {
-  //         setUser(data.user);
-  //         setIsLogin(true);
-  //       }
-  //     } catch (error) {
-  //       if (isMounted) {
-  //         setUser(null);
-  //         setIsLogin(false);
-  //       }
-  //     }
-  //   };
-
-  //   getUser();
-
-  //   return () => {
-  //     isMounted = false;
-  //   };
-  // }, []);
-  const register = async (userInfo) => {
+const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const login = async (credentials) => {
     try {
-      const res = await fetch("http://localhost:3000/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userInfo),
-        credentials: "include",
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        return {
-          success: false,
-          message: data.message || "Registration failed",
-        };
-      }
-
-      setUser(data.user);
-      setIsLogin(true);
-      return { success: true, message: data.message };
-    } catch (e) {
-      return { success: false, message: "Network error, please try again" };
+      const result = await authService.login(credentials);
+      localStorage.setItem("accessToken", result.accessToken);
+      setUser(result.data);
+      toast.success(`Welcome ${result.data?.fullName}`);
+      return true;
+    } catch (err) {
+      toast.error(err.message);
+      return false;
+    }
+  };
+  const register = async (credentials) => {
+    try {
+      const result = await authService.register(credentials);
+      localStorage.setItem("accessToken", result.accessToken);
+      setUser(result.data);
+      toast.success(`Welcome ${result.data?.fullName}`);
+      return true;
+    } catch (err) {
+      toast.error(err.message);
+      return false;
     }
   };
 
-  const login = async (userInfo) => {
-    try {
-      const res = await fetch("http://localhost:3000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userInfo),
-        credentials: "include",
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        return {
-          success: false,
-          message: data.message || "Login failed",
-        };
-      }
-
-      setUser(data.user);
-      setIsLogin(true);
-      return { success: true, message: data.message };
-    } catch (e) {
-      return { success: false, message: "Network error, please try again" };
-    }
+  const logout = () => {
+    localStorage.removeItem("accessToken");
+    setUser(null);
+    window.location.href = "/login";
   };
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        try {
+          const result = await authService.getProfile();
+          setUser(result.data);
+        } catch (err) {
+          // localStorage.removeItem("accessToken");
+        }
+      }
+      setIsLoading(false);
+    };
+
+    checkAuth();
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLogin, register, login }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        register,
+        login,
+        logout,
+        isAuthenticated: !!user,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
-}
+};
 export const useAuth = () => useContext(AuthContext);
+
+export default AuthProvider;
