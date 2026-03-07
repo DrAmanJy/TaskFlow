@@ -1,37 +1,47 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Outlet, Navigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
-// import DashboardHeader from "./DashboardHeader";
+import { Menu } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 const DashboardLayout = () => {
-  // Sidebar state to handle expansion/collapse
+  const { isLoading, user, isAuthenticated } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
 
-  // Mock user data based on your profile
-  const currentUser = {
-    fullName: "Aman Lathar",
-    profile: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aman",
-  };
-
-  const isAuthenticated = true;
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+  if (isLoading) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
   }
 
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-
+  if (!isAuthenticated) {
+    return <Navigate to="/auth?type=login" replace />;
+  }
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
-      {/* Sidebar - Receives state and user info */}
-      <Sidebar isOpen={isSidebarOpen} currentUser={currentUser} />
+      {/* Sidebar */}
+      <Sidebar
+        isOpen={isSidebarOpen}
+        setIsOpen={setIsSidebarOpen}
+        user={user}
+      />
 
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Header - Receives toggle function */}
-        {/* <DashboardHeader onToggleSidebar={toggleSidebar} /> */}
+      {/* Main Content Area */}
+      <div className="flex flex-col flex-1 min-w-0 relative">
+        {/* Floating Mobile Menu Button */}
+        <button
+          onClick={toggleSidebar}
+          aria-label="Toggle Sidebar"
+          className="fixed top-4 left-4 z-20 p-2 bg-white/90 backdrop-blur-sm shadow-sm border border-slate-200 rounded-md hover:bg-slate-50 md:hidden"
+        >
+          <Menu className="w-5 h-5 text-slate-700" />
+        </button>
 
-        {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-8">
+        {/* The Outlet now takes up the entire space and renders its own headers */}
+        <main className="flex-1 overflow-y-auto scroll-smooth">
           <Outlet />
         </main>
       </div>

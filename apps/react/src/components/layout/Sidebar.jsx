@@ -1,4 +1,3 @@
-import React from "react";
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -9,67 +8,118 @@ import {
   Zap,
 } from "lucide-react";
 
-const Sidebar = ({ isOpen, currentUser }) => {
+const Sidebar = ({ isOpen, setIsOpen, user }) => {
   const navItems = [
-    { name: "Dashboard", path: "/app", icon: LayoutDashboard },
-    { name: "Projects", path: "/app/projects", icon: KanbanSquare },
-    { name: "Tasks", path: "/app/tasks", icon: CheckCircle2 },
-    { name: "Chat", path: "/app/chat", icon: MessageSquare },
-    { name: "Settings", path: "/app/settings", icon: Settings },
+    { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+    { name: "Projects", path: "/projects", icon: KanbanSquare },
+    { name: "Tasks", path: "/tasks", icon: CheckCircle2 },
+    { name: "Settings", path: "/settings", icon: Settings },
   ];
 
+  // Only auto-close the sidebar when clicking a link on mobile screens
+  const handleLinkClick = () => {
+    if (window.innerWidth < 768) {
+      setIsOpen(false);
+    }
+  };
+
   return (
-    <aside
-      className={`${isOpen ? "w-64" : "w-20"} bg-slate-900 text-slate-300 transition-all duration-300 hidden md:flex flex-col z-30`}
-    >
-      <div className="p-6 flex items-center gap-3">
-        <div className="bg-indigo-500 p-2 rounded-lg shrink-0">
-          <Zap className="w-5 h-5 text-white" />
-        </div>
-        {isOpen && (
-          <span className="font-bold text-xl text-white tracking-tight">
-            NexusWork
-          </span>
-        )}
-      </div>
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div
+          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 bg-black/40 z-30 md:hidden transition-opacity duration-300"
+        />
+      )}
 
-      <nav className="flex-1 mt-4 px-3 space-y-1">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.name}
-            to={item.path}
-            end={item.path === "/app"}
-            className={({ isActive }) => `
-              w-full flex items-center gap-4 px-3 py-3 rounded-xl transition-colors group
-              ${isActive ? "bg-indigo-600 text-white" : "hover:bg-slate-800 hover:text-white"}
-            `}
+      <aside
+        aria-label="Primary"
+        className={`
+          fixed md:relative z-40 h-full
+          bg-slate-900 text-slate-300
+          transition-all duration-300 ease-in-out
+          flex flex-col overflow-hidden
+          
+          /* Mobile: Always w-64, slide in/out */
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}
+          w-64
+          
+          /* Desktop: Always visible, adjust width based on state */
+          md:translate-x-0
+          ${isOpen ? "md:w-64" : "md:w-20"}
+        `}
+      >
+        {/* Logo */}
+        <header className="flex items-center gap-3 p-6 whitespace-nowrap">
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="bg-indigo-500 p-2 rounded-lg hover:bg-indigo-400 transition-colors cursor-pointer shrink-0"
+            aria-label="Toggle Sidebar"
           >
-            <item.icon className="w-5 h-5" />
-            {isOpen && <span className="font-medium">{item.name}</span>}
-          </NavLink>
-        ))}
-      </nav>
+            <Zap className="w-5 h-5 text-white" />
+          </button>
 
-      <div className="p-4 border-t border-slate-800">
-        <div className="flex items-center gap-3 px-2">
-          <div className="w-8 h-8 rounded-full bg-indigo-100 overflow-hidden ring-2 ring-slate-800">
-            <img
-              src={currentUser.profile}
-              alt="Avatar"
-              className="w-full h-full object-cover"
-            />
-          </div>
           {isOpen && (
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">
-                {currentUser.fullName}
-              </p>
-              <p className="text-xs text-slate-500 truncate">Admin</p>
-            </div>
+            <span className="text-xl font-bold text-white transition-opacity duration-300">
+              NexusWork
+            </span>
           )}
-        </div>
-      </div>
-    </aside>
+        </header>
+
+        {/* Navigation */}
+        <nav className="flex-1 px-3" aria-label="Main navigation">
+          <ul className="space-y-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <li key={item.name}>
+                  <NavLink
+                    to={item.path}
+                    onClick={handleLinkClick}
+                    title={!isOpen ? item.name : undefined}
+                    className={({ isActive }) =>
+                      `flex items-center gap-4 px-3 py-3 rounded-xl transition-colors whitespace-nowrap
+                      ${
+                        isActive
+                          ? "bg-indigo-600 text-white"
+                          : "hover:bg-slate-800 hover:text-white"
+                      }`
+                    }
+                  >
+                    <Icon className="w-5 h-5 shrink-0" />
+                    {isOpen && <span className="font-medium">{item.name}</span>}
+                  </NavLink>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+
+        {/* User */}
+        <footer className="p-4 border-t border-slate-800 whitespace-nowrap overflow-hidden">
+          <section className="flex items-center gap-3">
+            <div className="w-8 h-8 shrink-0 rounded-full overflow-hidden ring-2 ring-slate-800">
+              <img
+                src={user?.profile}
+                alt={`${user?.fullName} avatar`}
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            {isOpen && (
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-white truncate">
+                  {user?.fullName}
+                </p>
+                <p className="text-xs text-slate-500 truncate">@{user?.role}</p>
+              </div>
+            )}
+          </section>
+        </footer>
+      </aside>
+    </>
   );
 };
 

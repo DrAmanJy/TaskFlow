@@ -51,13 +51,13 @@ const Header = () => {
           {/* Desktop CTAs */}
           <div className="hidden md:flex items-center gap-4">
             <button
-              onClick={() => navigate("/login")}
+              onClick={() => navigate("/auth?mode=login")}
               className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
             >
               Log in
             </button>
             <button
-              onClick={() => navigate("/register")}
+              onClick={() => navigate("/auth?mode=signup")}
               className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all shadow-sm"
             >
               Get Started
