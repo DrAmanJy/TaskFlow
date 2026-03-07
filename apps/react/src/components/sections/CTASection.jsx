@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-const CTASection = () => {
+const CTASection = (navigateTo) => {
   const navigate = useNavigate();
   return (
     <section className="py-20 bg-white">
@@ -25,7 +25,7 @@ const CTASection = () => {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
-                onClick={() => navigate("/register")}
+                onClick={() => navigate(navigateTo)}
                 className="w-full sm:w-auto rounded-full bg-white px-8 py-3.5 text-base font-semibold text-indigo-600 hover:bg-indigo-50 transition-colors shadow-lg"
               >
                 Create your free account
