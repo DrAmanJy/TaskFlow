@@ -1,212 +1,158 @@
-import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { useAuth } from "../context/authContext";
-import toast from "react-hot-toast";
-import {
-  ArrowLeft,
-  Edit,
-  Trash2,
-  Clock,
-  CheckCircle2,
-  Circle,
-} from "lucide-react";
+import React, { useState } from "react";
+import { TaskBoardHeader } from "../components/tasks/TaskBoardHeader";
+import { TaskColumn } from "../components/tasks/TaskColumn";
 
-import TaskDescription from "../components/TaskDescription";
-import TaskAssignees from "../components/TaskAssignees";
-import TaskDetails from "../components/TaskDetails";
-import DeleteTask from "../components/DeleteTask";
-import TaskForm from "../components/TaskForm";
-
-const priorityConfig = {
-  High: { color: "text-red-700", bg: "bg-red-50", border: "border-red-200" },
-  Urgent: { color: "text-red-700", bg: "bg-red-50", border: "border-red-200" },
-  Medium: {
-    color: "text-orange-700",
-    bg: "bg-orange-50",
-    border: "border-orange-200",
+// Mock Data
+const initialTasks = [
+  {
+    id: "task_88b2c1",
+    projectId: "proj_1",
+    projectName: "Rust Plugin Engine",
+    title: "Configure Rust Server Plugins",
+    description:
+      "Install and configure Oxide and essential plugins for the game server.",
+    status: "in-progress",
+    priority: "high",
+    assignedTo: {
+      id: "69a7d90bb1",
+      fullName: "Jyoti Dhull",
+      profile: "https://api.dicebear.com/7.x/avataaars/svg?seed=Jyoti",
+    },
+    createdAt: "2026-03-05T10:00:00.000Z",
+    comments: 3,
+    attachments: 1,
   },
-  Low: { color: "text-blue-700", bg: "bg-blue-50", border: "border-blue-200" },
-};
-
-const statusConfig = {
-  todo: {
-    label: "To Do",
-    icon: Circle,
-    color: "text-gray-500",
-    bg: "bg-gray-100",
+  {
+    id: "task_99x3d4",
+    projectId: "proj_2",
+    projectName: "Testing 1",
+    title: "Design Database Schema",
+    description:
+      "Draft the initial MongoDB collections for Users, Tasks, and Projects.",
+    status: "todo",
+    priority: "medium",
+    assignedTo: {
+      id: "69a7d90bb2",
+      fullName: "Aman Lathar",
+      profile: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aman",
+    },
+    createdAt: "2026-03-04T14:30:00.000Z",
+    comments: 5,
+    attachments: 0,
   },
-  "in-progress": {
-    label: "In Progress",
-    icon: Clock,
-    color: "text-blue-600",
-    bg: "bg-blue-50",
+  {
+    id: "task_77y2b1",
+    projectId: "proj_2",
+    projectName: "Testing 1",
+    title: "Setup CI/CD Pipeline",
+    description:
+      "Configure GitHub actions for automated testing and deployment.",
+    status: "todo",
+    priority: "high",
+    assignedTo: {
+      id: "69a7d90bb3",
+      fullName: "Sandeep R.",
+      profile: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sandeep",
+    },
+    createdAt: "2026-03-06T09:15:00.000Z",
+    comments: 0,
+    attachments: 2,
   },
-  review: {
-    label: "In Review",
-    icon: Clock,
-    color: "text-purple-600",
-    bg: "bg-purple-50",
+  {
+    id: "task_11a4c9",
+    projectId: "proj_3",
+    projectName: "Marketing Site",
+    title: "Initialize React Repository",
+    description:
+      "Scaffold the Vite React app with TailwindCSS and Lucide Icons.",
+    status: "done",
+    priority: "low",
+    assignedTo: {
+      id: "69a7d90bb2",
+      fullName: "Aman Lathar",
+      profile: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aman",
+    },
+    createdAt: "2026-03-01T11:00:00.000Z",
+    comments: 1,
+    attachments: 0,
   },
-  done: {
-    label: "Done",
-    icon: CheckCircle2,
-    color: "text-emerald-600",
-    bg: "bg-emerald-50",
-  },
-};
+];
 
-const formatDate = (dateString) => {
-  if (!dateString) return "None";
-  return new Date(dateString).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-};
+export default function GlobalTaskBoard() {
+  const [tasks, setTasks] = useState(initialTasks);
+  const [loadingTasks, setLoadingTasks] = useState({});
+  const [draggedTaskId, setDraggedTaskId] = useState(null);
 
-export default function TaskPage() {
-  const { id } = useParams();
-  const { isLogin } = useAuth();
+  const columns = [
+    { id: "todo", title: "To Do", color: "border-slate-300" },
+    { id: "in-progress", title: "In Progress", color: "border-indigo-400" },
+    { id: "done", title: "Done", color: "border-emerald-400" },
+  ];
 
-  const [task, setTask] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [loadError, setLoadError] = useState("");
+  // --- HTML5 Drag and Drop Handlers ---
+  const handleDragStart = (e, taskId) => {
+    setDraggedTaskId(taskId);
+    e.dataTransfer.setData("taskId", taskId);
+    e.dataTransfer.effectAllowed = "move";
+    setTimeout(() => {
+      const el = document.getElementById(`task-${taskId}`);
+      if (el) el.classList.add("opacity-50");
+    }, 0);
+  };
 
-  useEffect(() => {
-    if (!isLogin) {
-      setLoading(false);
-      setLoadError("Please log in to view this task.");
-      return;
+  const handleDragEnd = (e, taskId) => {
+    setDraggedTaskId(null);
+    const el = document.getElementById(`task-${taskId}`);
+    if (el) el.classList.remove("opacity-50");
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (e, columnId) => {
+    e.preventDefault();
+    const taskId = e.dataTransfer.getData("taskId");
+
+    if (!taskId) return;
+
+    const task = tasks.find((t) => t.id === taskId);
+
+    if (task && task.status !== columnId) {
+      setLoadingTasks((prev) => ({ ...prev, [taskId]: true }));
+      setTimeout(() => {
+        setTasks((prev) =>
+          prev.map((t) => (t.id === taskId ? { ...t, status: columnId } : t)),
+        );
+        setLoadingTasks((prev) => ({ ...prev, [taskId]: false }));
+      }, 1000);
     }
+  };
 
-    const fetchTask = async () => {
-      try {
-        const res = await fetch(`http://localhost:3000/api/tasks/${id}`, {
-          method: "GET",
-          credentials: "include",
-        });
-        const data = await res.json();
-
-        if (!res.ok) {
-          toast.error(data.message || "Failed to load task");
-          setLoadError(data.message);
-          return;
-        }
-        setTask(data.task);
-      } catch (error) {
-        setLoadError("Network error");
-        toast.error("Network error");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTask();
-  }, [id, isLogin]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500">
-        Loading task details...
-      </div>
-    );
-  }
-
-  if (!task) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500">
-        {loadError || "Task not found."}
-      </div>
-    );
-  }
-
-  const StatusIcon = statusConfig[task.status]?.icon || Circle;
-  const statusStyle = statusConfig[task.status] || statusConfig.todo;
-  const priorityStyle = priorityConfig[task.priority] || priorityConfig.Low;
+  const activeProjectsCount = new Set(tasks.map((t) => t.projectId)).size;
 
   return (
-    <div className="min-h-screen bg-gray-50/50 p-6 lg:p-8 font-sans text-gray-800 relative">
-      <div className="max-w-5xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <Link
-            to={`/projects/${task.project._id || task.project.id || task.project}`}
-            className="flex items-center text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1.5" />
-            Back to Project
-          </Link>
+    <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
+      <TaskBoardHeader />
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowEditModal(true)}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
-            >
-              <Edit className="w-4 h-4" /> Edit
-            </button>
-            <button
-              onClick={() => setShowDeleteModal(true)}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors shadow-sm"
-            >
-              <Trash2 className="w-4 h-4" /> Delete
-            </button>
-          </div>
-        </div>
-
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              {task.title}
-            </h1>
-            <div className="flex flex-wrap items-center gap-3 text-sm">
-              <span
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium ${statusStyle.bg} ${statusStyle.color}`}
-              >
-                <StatusIcon className="w-4 h-4" />
-                {statusStyle.label}
-              </span>
-              <span
-                className={`px-2.5 py-1 rounded-md font-medium border ${priorityStyle.bg} ${priorityStyle.color} ${priorityStyle.border}`}
-              >
-                {task.priority} Priority
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <TaskDescription description={task.description} />
-          </div>
-
-          <div className="space-y-6">
-            <TaskAssignees assignees={task.assignee} />
-            <TaskDetails
-              dueDate={task.dueDate}
-              createdAt={task.createdAt}
-              formatDate={formatDate}
+      <main className="flex-1 overflow-y-auto lg:overflow-x-auto lg:overflow-y-hidden p-4 sm:p-6">
+        <div className="flex flex-col lg:flex-row gap-6 lg:h-full items-start lg:min-w-max pb-8 lg:pb-0">
+          {columns.map((column) => (
+            <TaskColumn
+              key={column.id}
+              column={column}
+              columnTasks={tasks.filter((t) => t.status === column.id)}
+              loadingTasks={loadingTasks}
+              draggedTaskId={draggedTaskId}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
             />
-          </div>
+          ))}
         </div>
-      </div>
-
-      {showDeleteModal && (
-        <DeleteTask
-          onClose={() => setShowDeleteModal(false)}
-          title={task.title}
-          taskId={task.id}
-          projectId={task.project.id}
-        />
-      )}
-      {showEditModal && (
-        <TaskForm
-          existingTask={task}
-          team={task.project.team}
-          onClose={() => setShowEditModal(false)}
-          onSuccess={(updatedTask) => setTask(updatedTask)}
-        />
-      )}
+      </main>
     </div>
   );
 }
