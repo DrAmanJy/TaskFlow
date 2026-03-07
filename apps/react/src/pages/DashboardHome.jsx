@@ -26,27 +26,32 @@ const tasks = [
 const DashboardHome = () => {
   return (
     <div className="max-w-7xl mx-auto space-y-8">
-      <div>
+      <header>
         <h1 className="text-2xl font-bold text-slate-900">
           Welcome back, {currentUser.firstName}! 👋
         </h1>
         <p className="text-slate-500">
           Here's what's happening in your workspace today.
         </p>
-      </div>
+      </header>
 
-      <StatsOverview />
+      <section aria-label="Workspace statistics">
+        <StatsOverview />
+      </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          {/* Passing the tasks list down to the component */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <section className="lg:col-span-2" aria-label="Recent tasks">
           <TaskList tasks={tasks} />
-        </div>
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        </section>
+
+        <aside
+          className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm"
+          aria-label="Team information"
+        >
           <h2 className="font-bold text-slate-900 mb-4">Team</h2>
           <p className="text-sm text-slate-500">No team members invited yet.</p>
-        </div>
-      </div>
+        </aside>
+      </section>
     </div>
   );
 };

@@ -9,11 +9,10 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const Hero = () => {
+const Hero = ({ navigateTo }) => {
   const navigate = useNavigate();
   return (
     <section className="relative overflow-hidden bg-white pt-16 sm:pt-24 lg:pt-32 pb-16">
-      {/* Background decoration */}
       <div className="absolute inset-0 max-w-7xl mx-auto pointer-events-none">
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-indigo-50 blur-3xl opacity-50"></div>
         <div className="absolute top-32 -left-24 w-72 h-72 rounded-full bg-blue-50 blur-3xl opacity-50"></div>
@@ -32,7 +31,7 @@ const Hero = () => {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <button
-              onClick={() => navigate("/register")}
+              onClick={() => navigate(navigateTo)}
               className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-full bg-indigo-600 px-8 py-3.5 text-base font-semibold text-white hover:bg-indigo-700 shadow-sm transition-all hover:shadow-indigo-200 hover:-translate-y-0.5"
             >
               Start for free <ArrowRight className="h-4 w-4" />

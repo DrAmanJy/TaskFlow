@@ -2,22 +2,19 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 
 // Public Pages
 import LandingPage from "./pages/LandingPage";
-import LoginPage from "./pages/LoginPage";
-import SignupPage from "./pages/SignupPage";
 import ArchitecturePage from "./pages/ArchitecturePage";
 
 // Dashboard Pages
-// import DashboardLayout from "./components/DashboardLayout";
-// import DashboardHome from "./pages/DashboardHome";
-import Projects from "./pages/Projects";
-import Project from "./pages/Project";
-import TaskPage from "./pages/TaskPage";
-import Settings from "./pages/Settings";
+
+import GlobalTaskBoard from "./pages/TaskPage";
+import SettingsPage from "./pages/SettingsPage";
 import PublicLayout from "./components/layout/PublicLayout";
 import AuthPage from "./pages/AuthPage";
 import DashboardLayout from "./components/layout/DashboardLayout";
 import DashboardHome from "./pages/DashboardHome";
-// import ProtectedRoute from "./components/ProtectedRoute";
+import ProjectsPage from "./pages/ProjectsPage";
+import SingleProjectPage from "./pages/SingleProjectPage";
+import TaskDetailsPage from "./pages/TaskDetailsPage";
 
 const router = createBrowserRouter([
   {
@@ -26,8 +23,7 @@ const router = createBrowserRouter([
     children: [
       { path: "/", element: <LandingPage /> },
       { path: "/architecture", element: <ArchitecturePage /> },
-      { path: "/login", element: <AuthPage /> },
-      { path: "/register", element: <AuthPage /> },
+      { path: "/auth", element: <AuthPage /> },
     ],
   },
 
@@ -36,10 +32,11 @@ const router = createBrowserRouter([
     element: <DashboardLayout />,
     children: [
       { path: "/dashboard", element: <DashboardHome /> },
-      // { path: "/projects", element: <Projects /> },
-      // { path: "projects/:id", element: <Project /> },
-      // { path: "tasks/:id", element: <TaskPage /> },
-      // { path: "settings", element: <Settings /> },
+      { path: "/projects", element: <ProjectsPage /> },
+      { path: "/projects/:projectId", element: <SingleProjectPage /> },
+      { path: "/tasks", element: <GlobalTaskBoard /> },
+      { path: "/tasks/:taskId", element: <TaskDetailsPage /> },
+      { path: "settings", element: <SettingsPage /> },
     ],
   },
 ]);
