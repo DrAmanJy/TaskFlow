@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Search, Plus, X, Menu } from "lucide-react";
 
-export const TaskBoardHeader = ({
+export const PageHeader = ({
   title,
   placeholder,
   buttonText,

@@ -8,7 +8,7 @@ export const StatusBadge = ({ status }) => {
     <span
       className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${styles[status] || styles.todo}`}
     >
-      {status.replace("-", " ")}
+      {status?.replace("-", " ")}
     </span>
   );
 };

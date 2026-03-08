@@ -1,21 +1,44 @@
-export const ProjectStats = ({ stats }) => {
-  // Default data so your UI doesn't break while you're building
-  const defaultStats = [
-    { label: "Total", count: 12, color: "bg-slate-900" },
-    { label: "To Do", count: 4, color: "bg-slate-400" },
-    { label: "In Progress", count: 6, color: "bg-indigo-600" },
-    { label: "Completed", count: 2, color: "bg-emerald-500" },
-  ];
+import React from "react";
 
-  const displayStats = stats || defaultStats;
+export const ProjectStats = ({ projects = [] }) => {
+  const stats = [
+    {
+      label: "Total",
+      count: projects.length,
+      color: "bg-slate-900",
+    },
+    {
+      label: "To Do",
+      count: projects.filter((p) => p.status === "todo").length,
+      color: "bg-slate-400",
+    },
+    {
+      label: "In Progress",
+      count: projects.filter((p) => p.status === "in-progress").length,
+      color: "bg-indigo-600",
+    },
+    {
+      label: "Completed",
+      count: projects.filter(
+        (p) => p.status === "completed" || p.status === "done",
+      ).length,
+      color: "bg-emerald-500",
+    },
+  ];
 
   return (
     <div className="flex gap-8 mb-8 overflow-x-auto pb-4 no-scrollbar">
-      {displayStats.map((stat, i) => (
+      {stats.map((stat, i) => (
         <div key={i} className="flex items-center gap-3 shrink-0">
-          <div className={`w-2 h-2 rounded-full ${stat.color}`}></div>
-          <span className="text-sm font-bold text-slate-700">{stat.count}</span>
-          <span className="text-sm text-slate-500">{stat.label}</span>
+          <div
+            className={`w-2.5 h-2.5 rounded-full ${stat.color} shadow-sm`}
+          ></div>
+          <span className="text-sm font-extrabold text-slate-900">
+            {stat.count}
+          </span>
+          <span className="text-sm font-medium text-slate-500">
+            {stat.label}
+          </span>
         </div>
       ))}
     </div>

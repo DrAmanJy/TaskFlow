@@ -1,6 +1,7 @@
 import React from "react";
 import StatsOverview from "../components/dashboard/StatsOverview";
 import TaskList from "../components/dashboard/TaskList";
+import { PageHeader } from "../components/ui/PageHeader";
 const currentUser = {
   firstName: "Aman",
   fullName: "Aman Lathar",
@@ -25,15 +26,8 @@ const tasks = [
 ];
 const DashboardHome = () => {
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
-      <header>
-        <h1 className="text-2xl font-bold text-slate-900">
-          Welcome back, {currentUser.firstName}! 👋
-        </h1>
-        <p className="text-slate-500">
-          Here's what's happening in your workspace today.
-        </p>
-      </header>
+    <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
+      <PageHeader title="Dashboard" />
 
       <section aria-label="Workspace statistics">
         <StatsOverview />
