@@ -1,9 +1,10 @@
-/* eslint-disable no-unused-vars */
-import { useState, useEffect } from "react";
-import { projectService } from "../../api/projectService";
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { projectService } from "../api/projectService";
 import toast from "react-hot-toast";
 
-export const useProjects = () => {
+const ProjectContext = createContext();
+
+export const ProjectProvider = ({ children }) => {
   const [projects, setProjects] = useState([]);
   const [status, setStatus] = useState({
     loading: false,
@@ -28,11 +29,24 @@ export const useProjects = () => {
     }
   };
 
-  const searchProjects = async (query) => {
-    if (!query) {
-      return loadProjects();
+  const createProject = async (projectData) => {
+    setStatus((prev) => ({ ...prev, submitting: true }));
+    try {
+      const result = await projectService.create(projectData);
+      // Updates the SHARED state immediately
+      setProjects((prev) => [...prev, result.data]);
+      toast.success("Project successfully created");
+      return true;
+    } catch (err) {
+      toast.error(err.message);
+      return false;
+    } finally {
+      setStatus((prev) => ({ ...prev, submitting: false }));
     }
+  };
 
+  const searchProjects = async (query) => {
+    if (!query) return loadProjects();
     setStatus((prev) => ({ ...prev, searching: true }));
     try {
       const result = await projectService.search(query);
@@ -57,19 +71,6 @@ export const useProjects = () => {
     }
   };
 
-  const createProject = async (projectData) => {
-    setStatus((prev) => ({ ...prev, submitting: true }));
-    try {
-      const result = await projectService.create(projectData);
-      setProjects((prev) => [...prev, result.data]);
-      toast.success("Project successfully created");
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setStatus((prev) => ({ ...prev, submitting: false }));
-    }
-  };
-
   const updateProject = async (projectId, projectData) => {
     setStatus((prev) => ({ ...prev, updating: projectId }));
     try {
@@ -81,6 +82,7 @@ export const useProjects = () => {
       return result.data;
     } catch (err) {
       toast.error(err.message);
+      return null;
     } finally {
       setStatus((prev) => ({ ...prev, updating: null }));
     }
@@ -141,17 +143,25 @@ export const useProjects = () => {
     loadProjects();
   }, []);
 
-  return {
-    projects,
-    status,
-    searchProjects,
-    findProjectById,
-    refresh: loadProjects,
-    createProject,
-    updateProject,
-    deleteProject,
-    inviteTeamMember,
-    removeTeamMember,
-    leaveProjectTeam,
-  };
+  return (
+    <ProjectContext.Provider
+      value={{
+        projects,
+        status,
+        searchProjects,
+        findProjectById,
+        refresh: loadProjects,
+        createProject,
+        updateProject,
+        deleteProject,
+        inviteTeamMember,
+        removeTeamMember,
+        leaveProjectTeam,
+      }}
+    >
+      {children}
+    </ProjectContext.Provider>
+  );
 };
+
+export const useProjects = () => useContext(ProjectContext);
