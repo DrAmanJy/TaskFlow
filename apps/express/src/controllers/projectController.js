@@ -52,7 +52,7 @@ export const updateProject = async (req, res) => {
     req.body,
     req.user._id,
   );
-  return sendResponse(res, 200, updateProject, "Project updated successfully");
+  return sendResponse(res, 200, updatedProject, "Project updated successfully");
 };
 
 export const deleteProject = async (req, res) => {
