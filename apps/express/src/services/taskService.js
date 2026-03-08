@@ -91,6 +91,7 @@ export const deleteTaskById = async (taskId, userId) => {
 export const getMyTasks = async (userId) => {
   return await Task.find({ "assignee.userId": userId })
     .populate("project", "title icon")
+    .populate("assignee.userId", "firstName lastName profile")
     .sort({ dueDate: 1 });
 };
 

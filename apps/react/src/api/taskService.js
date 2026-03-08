@@ -8,9 +8,9 @@ export const TaskService = {
 
   getUserTask: () => apiClient("/tasks"),
 
-  getTaskById: (taskId) => apiClient(`/task/${taskId}`),
+  getTaskById: (taskId) => apiClient(`/tasks/${taskId}`),
 
-  getTaskByProjectId: (projectId) => apiClient(`/task/projects/${projectId}`),
+  getTaskByProjectId: (projectId) => apiClient(`/tasks/projects/${projectId}`),
 
   updateTask: (taskId, data) =>
     apiClient(`/tasks/${taskId}`, {

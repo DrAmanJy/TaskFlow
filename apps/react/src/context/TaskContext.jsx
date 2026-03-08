@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
-import { TaskService } from "../../api/taskService";
+import { createContext, useContext, useEffect, useState } from "react";
+import { TaskService } from "../api/taskService";
 import toast from "react-hot-toast";
 
-export const useTasks = () => {
+const TaskContext = createContext();
+
+export const TaskProvider = ({ children }) => {
   const [tasks, setTasks] = useState([]);
   const [status, setStatus] = useState({
     loading: false,
@@ -15,11 +17,10 @@ export const useTasks = () => {
   const loadTasks = async () => {
     setStatus((prev) => ({ ...prev, loading: true }));
     try {
-      const result = TaskService.getUserTask();
-      setTasks(result.data);
+      const result = await TaskService.getUserTask();
+      setTasks(result.data || []);
     } catch (error) {
-      toast.error("Could not load tasks");
-      toast.error(error.message);
+      toast.error(error.message || "Could not load tasks");
     } finally {
       setStatus((prev) => ({ ...prev, loading: false }));
     }
@@ -58,12 +59,26 @@ export const useTasks = () => {
     setStatus((prev) => ({ ...prev, loading: true }));
     try {
       const result = await TaskService.getTaskByProjectId(projectId);
-      setTasks(result.data);
+      setTasks(result.data || []);
     } catch (error) {
       toast.error(error.message);
-      return null;
     } finally {
       setStatus((prev) => ({ ...prev, loading: false }));
+    }
+  };
+
+  const createTask = async (data) => {
+    setStatus((prev) => ({ ...prev, submitting: true }));
+    try {
+      const result = await TaskService.createTask(data);
+      setTasks((prev) => [...prev, result.data]);
+      toast.success(result.message || "Task created successfully");
+      return true;
+    } catch (error) {
+      toast.error(error.message || "Failed to create task");
+      return false;
+    } finally {
+      setStatus((prev) => ({ ...prev, submitting: false }));
     }
   };
 
@@ -71,13 +86,12 @@ export const useTasks = () => {
     setStatus((prev) => ({ ...prev, updating: taskId }));
     try {
       const result = await TaskService.updateTask(taskId, data);
-      setTasks((prev) =>
-        prev.map((t) => (t.id === result.data.id ? result.data : t)),
-      );
-      toast.success(result.message);
+      setTasks((prev) => prev.map((t) => (t.id === taskId ? result.data : t)));
+      toast.success(result.message || "Task updated");
+      return true;
     } catch (error) {
-      toast.error(error.message);
-      return null;
+      toast.error(error.message || "Update failed");
+      return false;
     } finally {
       setStatus((prev) => ({ ...prev, updating: null }));
     }
@@ -86,12 +100,11 @@ export const useTasks = () => {
   const deleteTask = async (taskId) => {
     setStatus((prev) => ({ ...prev, deleting: taskId }));
     try {
-      const result = await TaskService.deleteTask(taskId);
-      setTasks((t) => t.filter(t.id !== result.data.id));
-      toast.success(result.message);
+      await TaskService.deleteTask(taskId);
+      setTasks((prev) => prev.filter((task) => task.id !== taskId));
+      toast.success("Task deleted successfully");
     } catch (error) {
       toast.error(error.message);
-      return null;
     } finally {
       setStatus((prev) => ({ ...prev, deleting: null }));
     }
@@ -101,13 +114,9 @@ export const useTasks = () => {
     setStatus((prev) => ({ ...prev, updating: taskId }));
     try {
       const result = await TaskService.moveTask(taskId, data);
-      setTasks((prev) =>
-        prev.map((t) => (t.id === result.data.id ? result.data : t)),
-      );
-      toast.success(result.message);
+      setTasks((prev) => prev.map((t) => (t.id === taskId ? result.data : t)));
     } catch (error) {
       toast.error(error.message);
-      return null;
     } finally {
       setStatus((prev) => ({ ...prev, updating: null }));
     }
@@ -117,15 +126,28 @@ export const useTasks = () => {
     loadTasks();
   }, []);
 
-  return {
-    tasks,
-    status,
-    searchTasks,
-    findTaskById,
-    findProjectTask,
-    refresh: loadTasks,
-    updateTask,
-    deleteTask,
-    moveTask,
-  };
+  return (
+    <TaskContext.Provider
+      value={{
+        tasks,
+        status,
+        searchTasks,
+        findTaskById,
+        findProjectTask,
+        createTask,
+        refresh: loadTasks,
+        updateTask,
+        deleteTask,
+        moveTask,
+      }}
+    >
+      {children}
+    </TaskContext.Provider>
+  );
+};
+
+export const useTask = () => {
+  const context = useContext(TaskContext);
+  if (!context) throw new Error("useTask must be used within TaskProvider");
+  return context;
 };

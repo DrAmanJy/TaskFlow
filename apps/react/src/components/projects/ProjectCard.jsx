@@ -1,4 +1,14 @@
-import { Folder, MoreVertical, Calendar, ArrowRight } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import {
+  Folder,
+  MoreVertical,
+  Calendar,
+  ArrowRight,
+  Trash2,
+  Edit2,
+} from "lucide-react";
+import { useProjects } from "../../context/ProjectContext";
+import { Link } from "react-router-dom";
 
 const StatusBadge = ({ status }) => {
   const styles = {
@@ -15,7 +25,21 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-export const ProjectCard = ({ project }) => {
+export const ProjectCard = ({ project, onEdit }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { deleteProject, status } = useProjects();
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       month: "short",
@@ -23,16 +47,56 @@ export const ProjectCard = ({ project }) => {
     });
   };
 
+  const isDeleting = status?.deleting === project.id;
+
   return (
-    <div className="group bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden">
+    <Link
+      to={`/projects/${project.id}`}
+      className={`group bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden relative ${isDeleting ? "opacity-50 grayscale" : ""}`}
+    >
       <div className="p-6 flex-1">
         <div className="flex justify-between items-start mb-4">
           <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
             <Folder className="w-6 h-6" />
           </div>
-          <button className="text-slate-400 hover:text-slate-600 p-1">
-            <MoreVertical className="w-5 h-5" />
-          </button>
+
+          {/* 3-Dot Dropdown Menu */}
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsMenuOpen(!isMenuOpen);
+              }}
+              className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-100 transition-colors"
+            >
+              <MoreVertical className="w-5 h-5" />
+            </button>
+
+            {isMenuOpen && (
+              <div className="absolute right-0 mt-2 w-36 bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 z-50 animate-in fade-in zoom-in duration-200">
+                <button
+                  onClick={() => {
+                    onEdit(project);
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors font-medium"
+                >
+                  <Edit2 className="w-4 h-4 text-slate-400" /> Update
+                </button>
+                <div className="h-px bg-slate-100 mx-2 my-1" />
+                <button
+                  onClick={() => deleteProject(project.id)}
+                  disabled={isDeleting}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors font-medium"
+                >
+                  <Trash2
+                    className={`w-4 h-4 ${isDeleting ? "animate-pulse" : ""}`}
+                  />
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="space-y-2 mb-6">
@@ -43,41 +107,34 @@ export const ProjectCard = ({ project }) => {
             <StatusBadge status={project.status} />
           </div>
           <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">
-            {project.description}
+            {project.description || "No description provided."}
           </p>
         </div>
 
-        {/* Team Avatars */}
         <div className="flex items-center justify-between pt-4 border-t border-slate-50">
           <div className="flex items-center gap-3">
             <div className="flex -space-x-2">
               <img
                 src={project.createdBy.profile}
                 alt={project.createdBy.fullName}
-                title={`Created by ${project.createdBy.fullName}`}
                 className="w-8 h-8 rounded-full border-2 border-white bg-slate-100"
               />
-              {project.team.map((member, i) => (
+              {project.team?.map((member, i) => (
                 <img
                   key={i}
                   src={member.profile}
                   alt={member.fullName}
-                  title={`Member: ${member.fullName}`}
                   className="w-8 h-8 rounded-full border-2 border-white bg-slate-100"
                 />
               ))}
-              <button className="w-8 h-8 rounded-full border-2 border-white bg-slate-50 flex items-center justify-center text-[10px] text-slate-400 font-bold hover:bg-slate-100 transition-colors">
-                +
-              </button>
             </div>
             <span className="text-xs text-slate-400 font-medium">
-              {project.team.length + 1} Members
+              {(project.team?.length || 0) + 1} Members
             </span>
           </div>
         </div>
       </div>
 
-      {/* Footer Info */}
       <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between mt-auto">
         <div className="flex items-center gap-1.5 text-slate-400">
           <Calendar className="w-3.5 h-3.5" />
@@ -89,6 +146,6 @@ export const ProjectCard = ({ project }) => {
           Open Project <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
-    </div>
+    </Link>
   );
 };
