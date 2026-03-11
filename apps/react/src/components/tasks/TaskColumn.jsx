@@ -27,23 +27,21 @@ export const TaskColumn = ({
             {columnTasks.length}
           </span>
         </div>
-        <button className="text-slate-400 hover:text-slate-600 transition-colors">
+        {/* <button className="text-slate-400 hover:text-slate-600 transition-colors">
           <MoreHorizontal className="w-5 h-5" />
-        </button>
+        </button> */}
       </div>
 
-      {/* Task List */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-3 no-scrollbar min-h-[150px]">
+      <div className="flex-1 overflow-y-auto p-3 space-y-3 no-scrollbar min-h-37.5">
         {columnTasks.map((task) => (
           <TaskCard
-            key={task.id} // Strictly using .id as requested
+            key={task.id}
             task={task}
             onDragStart={onDragStart}
             onDragEnd={onDragEnd}
           />
         ))}
 
-        {/* Visual Drop Indicator */}
         {draggedTaskId && !columnTasks.find((t) => t.id === draggedTaskId) && (
           <div className="h-24 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50/50 flex items-center justify-center text-slate-400 text-sm font-bold animate-in fade-in duration-200">
             Drop here
