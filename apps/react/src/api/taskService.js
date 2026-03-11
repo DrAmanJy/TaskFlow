@@ -26,6 +26,6 @@ export const TaskService = {
   moveTask: (taskId, data) =>
     apiClient(`/tasks/${taskId}/status`, {
       method: "PATCH",
-      body: JSON.parse(data),
+      body: JSON.stringify(data),
     }),
 };
