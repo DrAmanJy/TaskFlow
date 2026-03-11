@@ -71,8 +71,12 @@ export const sendMessage = async (req, res) => {
     text: text.trim(),
     user: userId,
   });
+
+  await message.populate("user", "firstName lastName profile");
+
   return sendResponse(res, 201, message);
 };
+
 export const editMessage = async (req, res) => {
   const { text } = req.body;
   const { id } = req.params;
@@ -103,9 +107,11 @@ export const editMessage = async (req, res) => {
       },
     },
     { new: true, runValidators: true },
-  );
-return sendResponse(res, 200, updatedMessage, "Message successfully edited");
+  ).populate("user", "firstName lastName profile");
+
+  return sendResponse(res, 200, updatedMessage, "Message successfully edited");
 };
+
 export const deleteMessage = async (req, res) => {
   const { id } = req.params;
   const userId = req.user._id;
@@ -115,7 +121,7 @@ export const deleteMessage = async (req, res) => {
   const deletedMessage = await Message.findOneAndDelete({
     _id: id,
     user: userId,
-  });
+  }).populate("user", "firstName lastName profile");
 
   if (!deletedMessage) {
     throw new AppError(
