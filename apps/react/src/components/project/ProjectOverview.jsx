@@ -38,7 +38,6 @@ export const ProjectOverview = ({
         </div>
         <div className="divide-y divide-slate-100">
           {tasks.slice(0, 5).map((t) => (
-            // Swapped div for Link and added the "to" prop
             <Link
               key={t.id}
               to={`/tasks/${t.id}`}
