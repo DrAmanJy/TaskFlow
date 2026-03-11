@@ -1,16 +1,92 @@
-import React from "react";
-import { Smile, Send } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Smile, Send, Loader2 } from "lucide-react";
+import { MessageService } from "../../api/MessageService";
+import { useAuth } from "../../context/AuthContext";
+import toast from "react-hot-toast";
 
-export const ChatArea = ({
-  messages,
-  currentUserId,
-  chatEndRef,
-  newMessage,
-  setNewMessage,
-  handleSendMessage,
-}) => {
+export const ChatArea = ({ taskId }) => {
+  const { user } = useAuth();
+  const currentUserId = user?.id;
+
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const chatEndRef = useRef(null);
+
+  // Fetch Messages on Mount
+  useEffect(() => {
+    const fetchChatHistory = async () => {
+      if (!taskId) return;
+      setChatLoading(true);
+      try {
+        const response = await MessageService.getMessages(taskId);
+        setMessages(response.data || []);
+      } catch (error) {
+        console.error("Failed to load messages:", error);
+        toast.error("Could not load chat history");
+      } finally {
+        setChatLoading(false);
+      }
+    };
+
+    fetchChatHistory();
+  }, [taskId]);
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Handle Sending Messages
+  const handleSendMessage = async (e) => {
+    if (e) e.preventDefault();
+    if (!newMessage.trim()) return;
+
+    const tempId = Date.now().toString();
+
+    // Inject the real user data from useAuth into the optimistic message
+    const optimisticMsg = {
+      _id: tempId,
+      text: newMessage,
+      user: {
+        id: currentUserId,
+        fullName:
+          user?.fullName ||
+          `${user?.firstName} ${user?.lastName}`.trim() ||
+          "You",
+        profile: user?.profile,
+      },
+      createdAt: new Date().toISOString(),
+      sending: true,
+    };
+
+    setMessages((prev) => [...prev, optimisticMsg]);
+    const messageContent = newMessage;
+    setNewMessage("");
+
+    try {
+      const response = await MessageService.sendMessage(taskId, {
+        text: messageContent,
+      });
+
+      setMessages((prev) =>
+        prev.map((msg) => (msg._id === tempId ? response.data : msg)),
+      );
+    } catch (error) {
+      toast.error(error.message || "Failed to send message");
+      setMessages((prev) => prev.filter((msg) => msg._id !== tempId));
+      setNewMessage(messageContent);
+    }
+  };
+
   return (
     <main className="flex flex-col flex-1 bg-slate-50/50 relative">
+      {chatLoading && (
+        <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex items-center justify-center">
+          <Loader2 className="animate-spin text-indigo-600 w-6 h-6" />
+        </div>
+      )}
+
       {/* Messages List */}
       <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6">
         <div className="text-center pb-6 border-b border-slate-200/60 mb-6">
@@ -21,16 +97,18 @@ export const ChatArea = ({
         </div>
 
         {messages.map((msg) => {
-          const isMe = msg.sender.id === currentUserId;
+          // Check if message belongs to current user
+          const isMe =
+            msg.user?.id === currentUserId || msg.user?._id === currentUserId;
 
           return (
             <div
-              key={msg.id}
-              className={`flex gap-3 ${isMe ? "justify-end" : "justify-start"}`}
+              key={msg.id || msg._id}
+              className={`flex gap-3 ${isMe ? "justify-end" : "justify-start"} ${msg.sending ? "opacity-60" : ""}`}
             >
               {!isMe && (
                 <img
-                  src={msg.sender.profile}
+                  src={msg.user?.profile}
                   className="w-8 h-8 rounded-full shadow-sm mt-4"
                   alt="Avatar"
                 />
@@ -40,7 +118,7 @@ export const ChatArea = ({
                 className={`flex flex-col max-w-md ${isMe ? "items-end" : "items-start"}`}
               >
                 <div className="text-[11px] font-semibold text-slate-400 mb-1.5 px-1">
-                  {isMe ? "You" : msg.sender.fullName}
+                  {isMe ? "You" : msg.user?.fullName}
                 </div>
 
                 <div
@@ -50,10 +128,10 @@ export const ChatArea = ({
                       : "bg-white border border-slate-200 text-slate-700 rounded-2xl rounded-tl-sm"
                   }`}
                 >
-                  {msg.content}
+                  {msg.text}
                 </div>
                 <span className="text-[9px] text-slate-400 mt-1 px-1">
-                  {new Date(msg.timestamp).toLocaleTimeString([], {
+                  {new Date(msg.createdAt).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
@@ -62,8 +140,11 @@ export const ChatArea = ({
 
               {isMe && (
                 <img
-                  src={msg.sender.profile}
-                  className="w-8 h-8 rounded-full shadow-sm mt-4"
+                  src={
+                    msg.user?.profile ||
+                    `https://api.dicebear.com/7.x/initials/svg?seed=You`
+                  }
+                  className="w-8 h-8 rounded-full shadow-sm mt-4 object-cover"
                   alt="Avatar"
                 />
               )}
