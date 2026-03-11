@@ -1,33 +1,58 @@
-import React from "react";
-import { KanbanSquare, Clock, Users, MessageSquare } from "lucide-react";
+import React, { useMemo } from "react";
+import { KanbanSquare, Clock, Users, CheckCircle } from "lucide-react";
 
-const StatsOverview = () => {
+const StatsOverview = ({ tasks = [], projects = [] }) => {
+  // Dynamically calculate stats based on the context data
+  const statsData = useMemo(() => {
+    const activeProjects = projects.length;
+    const pendingTasks = tasks.filter((t) => t.status !== "done").length;
+    const completedTasks = tasks.filter((t) => t.status === "done").length;
+
+    // Calculate unique team members across all projects
+    const uniqueMembers = new Set();
+    projects.forEach((project) => {
+      if (Array.isArray(project.team)) {
+        project.team.forEach((member) => {
+          const id = member.id || member._id || member.userId?._id;
+          if (id) uniqueMembers.add(id);
+        });
+      }
+    });
+
+    return {
+      activeProjects,
+      pendingTasks,
+      teamMembers: uniqueMembers.size,
+      completedTasks,
+    };
+  }, [tasks, projects]);
+
   const stats = [
     {
-      label: "Active Projects",
-      value: "4",
+      label: "Total Projects",
+      value: statsData.activeProjects,
       icon: KanbanSquare,
       color: "text-blue-600",
       bg: "bg-blue-50",
     },
     {
       label: "Pending Tasks",
-      value: "12",
+      value: statsData.pendingTasks,
       icon: Clock,
       color: "text-amber-600",
       bg: "bg-amber-50",
     },
     {
       label: "Team Members",
-      value: "8",
+      value: statsData.teamMembers,
       icon: Users,
       color: "text-indigo-600",
       bg: "bg-indigo-50",
     },
     {
-      label: "Chat Messages",
-      value: "42",
-      icon: MessageSquare,
+      label: "Completed Tasks",
+      value: statsData.completedTasks,
+      icon: CheckCircle,
       color: "text-emerald-600",
       bg: "bg-emerald-50",
     },
@@ -38,7 +63,7 @@ const StatsOverview = () => {
       {stats.map((stat, i) => (
         <div
           key={i}
-          className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between"
+          className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between transition-all hover:shadow-md hover:border-slate-300"
         >
           <div>
             <p className="text-sm font-medium text-slate-500 mb-1">

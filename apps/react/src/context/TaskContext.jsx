@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { TaskService } from "../api/taskService";
 import toast from "react-hot-toast";
 
@@ -14,7 +20,7 @@ export const TaskProvider = ({ children }) => {
     deleting: null,
   });
 
-  const loadTasks = async () => {
+  const loadTasks = useCallback(async () => {
     setStatus((prev) => ({ ...prev, loading: true }));
     try {
       const result = await TaskService.getUserTask();
@@ -24,25 +30,29 @@ export const TaskProvider = ({ children }) => {
     } finally {
       setStatus((prev) => ({ ...prev, loading: false }));
     }
-  };
+  }, []);
 
-  const searchTasks = async (query) => {
-    if (!query) {
-      return loadTasks();
-    }
+  // 2. Memoize searchTasks
+  const searchTasks = useCallback(
+    async (query) => {
+      if (!query) {
+        return loadTasks();
+      }
 
-    setStatus((prev) => ({ ...prev, searching: true }));
-    try {
-      const result = await TaskService.search(query);
-      setTasks(result.data);
-    } catch (err) {
-      toast.error(err.message || "Search failed");
-    } finally {
-      setStatus((prev) => ({ ...prev, searching: false }));
-    }
-  };
+      setStatus((prev) => ({ ...prev, searching: true }));
+      try {
+        const result = await TaskService.search(query);
+        setTasks(result.data || []);
+      } catch (err) {
+        toast.error(err.message || "Search failed");
+      } finally {
+        setStatus((prev) => ({ ...prev, searching: false }));
+      }
+    },
+    [loadTasks],
+  );
 
-  const findTaskById = async (taskId) => {
+  const findTaskById = useCallback(async (taskId) => {
     setStatus((prev) => ({ ...prev, loading: true }));
     try {
       const result = await TaskService.getTaskById(taskId);
@@ -53,9 +63,9 @@ export const TaskProvider = ({ children }) => {
     } finally {
       setStatus((prev) => ({ ...prev, loading: false }));
     }
-  };
+  }, []);
 
-  const findProjectTask = async (projectId) => {
+  const findProjectTask = useCallback(async (projectId) => {
     setStatus((prev) => ({ ...prev, loading: true }));
     try {
       const result = await TaskService.getTaskByProjectId(projectId);
@@ -65,9 +75,9 @@ export const TaskProvider = ({ children }) => {
     } finally {
       setStatus((prev) => ({ ...prev, loading: false }));
     }
-  };
+  }, []);
 
-  const createTask = async (data) => {
+  const createTask = useCallback(async (data) => {
     setStatus((prev) => ({ ...prev, submitting: true }));
     try {
       const result = await TaskService.createTask(data);
@@ -80,9 +90,9 @@ export const TaskProvider = ({ children }) => {
     } finally {
       setStatus((prev) => ({ ...prev, submitting: false }));
     }
-  };
+  }, []);
 
-  const updateTask = async (taskId, data) => {
+  const updateTask = useCallback(async (taskId, data) => {
     setStatus((prev) => ({ ...prev, updating: taskId }));
     try {
       const result = await TaskService.updateTask(taskId, data);
@@ -95,9 +105,9 @@ export const TaskProvider = ({ children }) => {
     } finally {
       setStatus((prev) => ({ ...prev, updating: null }));
     }
-  };
+  }, []);
 
-  const deleteTask = async (taskId) => {
+  const deleteTask = useCallback(async (taskId) => {
     setStatus((prev) => ({ ...prev, deleting: taskId }));
     try {
       await TaskService.deleteTask(taskId);
@@ -108,23 +118,25 @@ export const TaskProvider = ({ children }) => {
     } finally {
       setStatus((prev) => ({ ...prev, deleting: null }));
     }
-  };
+  }, []);
 
-  const moveTask = async (taskId, data) => {
+  const moveTask = useCallback(async (taskId, data) => {
     setStatus((prev) => ({ ...prev, updating: taskId }));
     try {
       const result = await TaskService.moveTask(taskId, data);
       setTasks((prev) => prev.map((t) => (t.id === taskId ? result.data : t)));
+      toast.success(result.message);
     } catch (error) {
+      console.log(error);
       toast.error(error.message);
     } finally {
       setStatus((prev) => ({ ...prev, updating: null }));
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadTasks();
-  }, []);
+  }, [loadTasks]);
 
   return (
     <TaskContext.Provider

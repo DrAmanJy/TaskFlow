@@ -23,9 +23,12 @@ export const searchProjects = async (req, res) => {
       },
     ],
   })
-    .select("title description status icon createdAt")
+    .select("title description status icon createdAt createdBy team")
+    .populate("createdBy", "fullName profile")
+    .populate("team", "fullName profile")
     .sort({ updatedAt: -1 })
     .limit(20);
+
   return sendResponse(res, 200, projects);
 };
 

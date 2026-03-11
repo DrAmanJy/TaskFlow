@@ -17,6 +17,7 @@ export const ProjectProvider = ({ children }) => {
     deleting: null,
   });
 
+  // 1. Load all projects on mount
   const loadProjects = async () => {
     setStatus((prev) => ({ ...prev, loading: true }));
     try {
@@ -29,11 +30,31 @@ export const ProjectProvider = ({ children }) => {
     }
   };
 
+  const findProjectById = async (projectId) => {
+    const existing = projects.find((p) => p.id === projectId);
+    if (existing) return existing;
+
+    setStatus((prev) => ({ ...prev, loading: true }));
+    try {
+      const result = await projectService.getById(projectId);
+      setProjects((prev) => {
+        const exists = prev.find((p) => p.id === projectId);
+        return exists ? prev : [...prev, result.data];
+      });
+
+      return result.data;
+    } catch (err) {
+      toast.error(err.message || "Failed to fetch project");
+      return null;
+    } finally {
+      setStatus((prev) => ({ ...prev, loading: false }));
+    }
+  };
+
   const createProject = async (projectData) => {
     setStatus((prev) => ({ ...prev, submitting: true }));
     try {
       const result = await projectService.create(projectData);
-      // Updates the SHARED state immediately
       setProjects((prev) => [...prev, result.data]);
       toast.success("Project successfully created");
       return true;
@@ -55,19 +76,6 @@ export const ProjectProvider = ({ children }) => {
       toast.error(err.message || "Search failed");
     } finally {
       setStatus((prev) => ({ ...prev, searching: false }));
-    }
-  };
-
-  const findProjectById = async (projectId) => {
-    setStatus((prev) => ({ ...prev, loading: true }));
-    try {
-      const result = await projectService.getById(projectId);
-      return result.data;
-    } catch (err) {
-      toast.error(err.message);
-      return null;
-    } finally {
-      setStatus((prev) => ({ ...prev, loading: false }));
     }
   };
 
@@ -117,8 +125,10 @@ export const ProjectProvider = ({ children }) => {
     setStatus((prev) => ({ ...prev, removing: projectId }));
     try {
       const result = await projectService.removeTeam(projectId, email);
+      setProjects((prev) =>
+        prev.map((p) => (p.id === projectId ? result.data : p)),
+      );
       toast.success(result.message || "User removed from project");
-      // todo: make backend send new team array then update the team array of project
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -129,9 +139,9 @@ export const ProjectProvider = ({ children }) => {
   const leaveProjectTeam = async (projectId) => {
     setStatus((prev) => ({ ...prev, leaving: projectId }));
     try {
-      const result = await projectService.leaveTeam(projectId);
-      toast.success(result.message || "Successfully leave the project");
-      // todo: make backend send new team array then update the team array of project
+      await projectService.leaveTeam(projectId);
+      setProjects((prev) => prev.filter((p) => p.id !== projectId));
+      toast.success("Successfully left the project");
     } catch (err) {
       toast.error(err.message);
     } finally {

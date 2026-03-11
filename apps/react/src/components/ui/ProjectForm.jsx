@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Layout, Server, Store, Folder, X, Loader2 } from "lucide-react";
-import { useAuth } from "../context/authContext";
+import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 import { Navigate } from "react-router-dom";
-import { useProjects } from "../context/ProjectContext";
+import { useProjects } from "../../context/ProjectContext";
 
 export default function ProjectForm({ onClose, existingProject = null }) {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();

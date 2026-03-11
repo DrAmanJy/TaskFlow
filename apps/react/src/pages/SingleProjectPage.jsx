@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useTask } from "../context/TaskContext";
 import { useProjects } from "../context/ProjectContext";
+import { Loader2, AlertCircle } from "lucide-react";
 
 import { ProjectDetailHeader } from "../components/project/ProjectDetailHeader";
 import { ProjectWorkspace } from "../components/project/ProjectWorkspace";
@@ -12,40 +13,74 @@ import TaskForm from "../components/ui/TaskForm";
 
 export default function SingleProjectPage() {
   const { projectId } = useParams();
-  const { projects, status: projectStatus, deleteProject } = useProjects();
+  const {
+    projects,
+    status: projectStatus,
+    deleteProject,
+    findProjectById,
+  } = useProjects();
   const { tasks, findProjectTask } = useTask();
 
   const [showProjectForm, setShowProjectForm] = useState(false);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
 
+  // 1. DERIVED STATE: Always sync with the global 'cache'
   const project = projects.find((p) => p.id === projectId);
 
+  // 2. SMART INITIALIZATION LOGIC
   useEffect(() => {
-    if (project?.id) {
-      findProjectTask(project.id);
-    }
-  }, [project?.id]);
+    const initialize = async () => {
+      // If global projects are loading for the first time, wait for them.
+      if (projectStatus.loading && projects.length === 0) return;
 
-  if (projectStatus.loading) {
+      if (project) {
+        // Project exists in state -> Sync tasks only
+        findProjectTask(projectId);
+      } else if (!projectStatus.loading && projectId) {
+        // Global load finished and project is STILL missing -> Fetch specific project
+        await findProjectById(projectId);
+      }
+    };
+
+    initialize();
+  }, [projectId, project?.id, projectStatus.loading]);
+
+  // 3. UI LOADING & ERROR STATES
+  if (projectStatus.loading && !project) {
     return (
-      <div className="h-screen flex items-center justify-center bg-slate-50">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <div className="h-screen flex flex-col items-center justify-center bg-slate-50 gap-4">
+        <Loader2 className="animate-spin text-indigo-600 w-10 h-10" />
+        <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">
+          Syncing MythCraft Data...
+        </p>
       </div>
     );
   }
 
   if (!project) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-slate-50 text-slate-500">
-        <h2 className="text-2xl font-bold text-slate-800 mb-2">
+      <div className="h-screen flex flex-col items-center justify-center bg-slate-50 text-slate-500 px-6 text-center">
+        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-6">
+          <AlertCircle className="w-8 h-8 text-red-500" />
+        </div>
+        <h2 className="text-2xl font-bold text-slate-900 mb-2">
           Project Not Found
         </h2>
-        <p>This project may have been deleted or does not exist.</p>
+        <p className="max-w-xs text-sm text-slate-500">
+          This project doesn't exist or you don't have access to it anymore.
+        </p>
+        <Link
+          to="/projects"
+          className="mt-8 px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-indigo-100 transition-all hover:bg-indigo-700 active:scale-95"
+        >
+          Return to Dashboard
+        </Link>
       </div>
     );
   }
 
+  // Helper Logic
   const doneTasksCount = tasks.filter((t) => t.status === "done").length;
   const activeTasksCount = tasks.filter((t) => t.status !== "done").length;
   const progress =
@@ -64,7 +99,8 @@ export default function SingleProjectPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans pb-20 text-slate-900">
+    <div className="min-h-screen bg-slate-50 font-sans pb-20 text-slate-900 animate-in fade-in duration-500">
+      {/* Modals */}
       {showProjectForm && (
         <ProjectForm
           onClose={() => setShowProjectForm(false)}
