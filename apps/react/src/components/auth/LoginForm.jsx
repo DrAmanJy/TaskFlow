@@ -3,6 +3,16 @@ import { Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
 import { InputField } from "./InputField";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const loginSchema = z.object({
+  email: z.string().min(1, "Email is required").email("Invalid email"),
+  password: z
+    .string()
+    .refine((val) => val !== "", { message: "Password is required" })
+    .min(6, "Password must be at least 6 characters"),
+});
 
 export default function LoginForm() {
   const { isLoading, isAuthenticated, login } = useAuth();
@@ -11,8 +21,9 @@ export default function LoginForm() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -48,10 +59,6 @@ export default function LoginForm() {
             placeholder="aman@example.com"
             register={register}
             error={errors.email}
-            rules={{
-              required: "Email is required",
-              pattern: { value: /\S+@\S+\.\S+/, message: "Invalid email" },
-            }}
           />
 
           <InputField
@@ -62,18 +69,14 @@ export default function LoginForm() {
             placeholder="••••••••"
             register={register}
             error={errors.password}
-            rules={{
-              required: "Password is required",
-              minLength: { value: 6, message: "Min 6 characters" },
-            }}
           />
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isSubmitting}
             className="w-full flex justify-center items-center py-3.5 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all active:scale-[0.98] disabled:opacity-70 mt-2"
           >
-            {isLoading ? (
+            {isSubmitting ? (
               <Loader2 className="animate-spin h-5 w-5" />
             ) : (
               <>
