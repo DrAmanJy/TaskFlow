@@ -4,6 +4,16 @@ import ImageUpload from "../ui/ImageUpload";
 import { InputField } from "./InputField";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const registerSchema = z.object({
+  profileImage: z.instanceof(File).optional(),
+  firstName: z.string().min(1, "First Name is required").min(3, "First Name must be at least 3 characters"),
+  lastName: z.string().min(1, "Last Name is required").min(3, "Last Name must be at least 3 characters"),
+  email: z.string().min(1, "Email is required").email("Invalid email"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
 
 export default function RegisterForm() {
   const { isLoading, isAuthenticated, register: registerUser } = useAuth();
@@ -13,8 +23,9 @@ export default function RegisterForm() {
     register,
     handleSubmit,
     control,
-    formState: { errors },
+    formState: { errors,isSubmitting },
   } = useForm({
+    resolver: zodResolver(registerSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -31,8 +42,8 @@ export default function RegisterForm() {
     return <Navigate to="/dashboard" replace />;
   }
 
-  const onSubmit = (data) => {
-    const success = registerUser(data);
+  const onSubmit = async (data) => {
+    const success = await registerUser(data);
     if (success) {
       navigate("/dashboard");
     }
@@ -67,10 +78,6 @@ export default function RegisterForm() {
               placeholder="Aman"
               register={register}
               error={errors.firstName}
-              rules={{
-                required: "First Name Required",
-                minLength: { value: 3, message: "Min 3 chars" },
-              }}
               className="flex-1"
             />
 
@@ -81,10 +88,6 @@ export default function RegisterForm() {
               placeholder="Lathar"
               register={register}
               error={errors.lastName}
-              rules={{
-                required: "Last Name Required",
-                minLength: { value: 3, message: "Min 3 chars" },
-              }}
               className="flex-1"
             />
           </div>
@@ -97,10 +100,6 @@ export default function RegisterForm() {
             placeholder="aman@example.com"
             register={register}
             error={errors.email}
-            rules={{
-              required: "Email is required",
-              pattern: { value: /\S+@\S+\.\S+/, message: "Invalid email" },
-            }}
           />
 
           <InputField
@@ -111,18 +110,14 @@ export default function RegisterForm() {
             placeholder="••••••••"
             register={register}
             error={errors.password}
-            rules={{
-              required: "Password is required",
-              minLength: { value: 6, message: "Min 6 characters" },
-            }}
           />
 
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isSubmitting}
             className="w-full flex justify-center items-center py-3.5 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all active:scale-[0.98] disabled:opacity-70 mt-2"
           >
-            {isLoading ? (
+            {isSubmitting ? (
               <Loader2 className="animate-spin h-5 w-5" />
             ) : (
               <>
