@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useId } from "react";
 import { AlertCircle } from "lucide-react";
 
 export const InputField = ({
@@ -7,13 +7,18 @@ export const InputField = ({
   error,
   register,
   name,
-  rules,
   className = "",
   ...props
 }) => {
+  const inputId = useId(); 
+  const errorId = `${inputId}-error`;
+
   return (
     <div className={`space-y-1.5 ${className}`}>
-      <label className="text-sm font-medium text-slate-700 block ml-0.5">
+      <label 
+        htmlFor={inputId} 
+        className="text-sm font-medium text-slate-700 block ml-0.5"
+      >
         {label}
       </label>
 
@@ -25,8 +30,11 @@ export const InputField = ({
         </div>
 
         <input
-          {...register(name, rules)}
-          {...props}
+          id={inputId}
+          aria-invalid={error ? "true" : "false"}
+          aria-describedby={error ? errorId : undefined}
+          {...props} 
+          {...register(name)} 
           className={`block w-full pl-10 pr-3 py-2.5 border rounded-lg text-sm transition-all focus:ring-2 outline-none
             ${
               error
@@ -41,7 +49,10 @@ export const InputField = ({
         {error?.message && (
           <>
             <AlertCircle className="w-3.5 h-3.5 text-red-500" />
-            <p className="text-[11px] font-medium text-red-500 leading-none">
+            <p 
+              id={errorId} 
+              className="text-[11px] font-medium text-red-500 leading-none"
+            >
               {error.message}
             </p>
           </>
