@@ -1,12 +1,13 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
-import { authService } from "../api/authService";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { authService } from "../api/authService";
 
 const AuthContext = createContext();
 
-const AuthProvider = ({ children }) => {
+export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
   const login = async (credentials) => {
     try {
       const result = await authService.login(credentials);
@@ -19,6 +20,7 @@ const AuthProvider = ({ children }) => {
       return false;
     }
   };
+
   const register = async (credentials) => {
     try {
       const result = await authService.register(credentials);
@@ -35,7 +37,7 @@ const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem("accessToken");
     setUser(null);
-    window.location.href = "/login";
+    window.location.href = "/auth?mode=login";
   };
 
   useEffect(() => {
@@ -45,8 +47,8 @@ const AuthProvider = ({ children }) => {
         try {
           const result = await authService.getProfile();
           setUser(result.data);
-        } catch (err) {
-          // localStorage.removeItem("accessToken");
+        } catch {
+          localStorage.removeItem("accessToken");
         }
       }
       setIsLoading(false);
@@ -69,7 +71,6 @@ const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-export const useAuth = () => useContext(AuthContext);
+}
 
-export default AuthProvider;
+export const useAuth = () => useContext(AuthContext);

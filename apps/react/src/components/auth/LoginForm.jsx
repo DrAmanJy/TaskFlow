@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
 import { InputField } from "./InputField";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/authContext";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 

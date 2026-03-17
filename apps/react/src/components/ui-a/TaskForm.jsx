@@ -8,29 +8,30 @@ import { useForm, useWatch } from "react-hook-form";
 
 const taskSchema = z.object({
   projectId: z.string().min(1, "Project is required"),
-  
+
   title: z
     .string()
+    .refine((val) => val !== "", { error: "Title is required" })
     .min(3, "Title must be at least 3 characters")
     .max(30, "Title cannot exceed 30 characters"),
 
   description: z
     .string()
-    .max(128, "Description cannot exceed 128 characters")
-    .optional(), 
+    .refine((val) => val !== "", { error: "Description is required" })
+    .min(3, "Description must be at least 3 characters")
+    .max(128, "Description cannot exceed 128 characters"),
 
   status: z.enum(["todo", "in-progress", "done"], {
-    required_error: "Status is required",
+    error: "Status is required",
   }),
 
   priority: z.enum(["Low", "Medium", "High"], {
-    required_error: "Priority is required",
+    error: "Priority is required",
   }),
 
   assignee: z
-    .string()
-    .optional()
-    .transform((val) => (val === "" ? null : val)),
+    .uuid("Invalid id")
+    .refine((val) => val !== "", { error: "assignee is required" }),
 });
 
 export default function TaskForm({ onClose, projectId, existingTask = null }) {
@@ -51,7 +52,7 @@ export default function TaskForm({ onClose, projectId, existingTask = null }) {
       assignee: existingTask?.assignee?.id || "",
     },
   });
-
+  console.log(errors);
   const { createTask, updateTask, status: taskStatus } = useTask();
   const { projects } = useProjects();
 
@@ -81,7 +82,7 @@ export default function TaskForm({ onClose, projectId, existingTask = null }) {
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-sans">
-      <div 
+      <div
         className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200"
         role="dialog"
         aria-modal="true"
@@ -100,12 +101,17 @@ export default function TaskForm({ onClose, projectId, existingTask = null }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 flex flex-col gap-5">
-          
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="p-6 flex flex-col gap-5"
+        >
           {/* Project Selection */}
           {!projectId && !isEditMode && (
             <div>
-              <label htmlFor="projectId" className="block text-sm font-bold text-slate-700 mb-1.5">
+              <label
+                htmlFor="projectId"
+                className="block text-sm font-bold text-slate-700 mb-1.5"
+              >
                 Project
               </label>
               <select
@@ -122,30 +128,44 @@ export default function TaskForm({ onClose, projectId, existingTask = null }) {
                 ))}
               </select>
               {errors.projectId && (
-                <p className="text-xs text-red-500 mt-1">{errors.projectId.message}</p>
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.projectId.message}
+                </p>
               )}
             </div>
           )}
 
           {/* Task Title */}
           <div>
-            <label htmlFor="title" className="block text-sm font-bold text-slate-700 mb-1.5">Task Title</label>
+            <label
+              htmlFor="title"
+              className="block text-sm font-bold text-slate-700 mb-1.5"
+            >
+              Task Title
+            </label>
             <input
               id="title"
-              autoFocus 
+              autoFocus
               {...register("title")}
               disabled={isBusy}
               className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-100 outline-none"
               placeholder="e.g., Update server icons"
             />
             {errors.title && (
-              <p className="text-xs text-red-500 mt-1">{errors.title.message}</p>
+              <p className="text-xs text-red-500 mt-1">
+                {errors.title.message}
+              </p>
             )}
           </div>
 
           {/* Task Description */}
           <div>
-            <label htmlFor="description" className="block text-sm font-bold text-slate-700 mb-1.5">Description</label>
+            <label
+              htmlFor="description"
+              className="block text-sm font-bold text-slate-700 mb-1.5"
+            >
+              Description
+            </label>
             <textarea
               id="description"
               {...register("description")}
@@ -155,14 +175,21 @@ export default function TaskForm({ onClose, projectId, existingTask = null }) {
               placeholder="Add details about this task..."
             />
             {errors.description && (
-              <p className="text-xs text-red-500 mt-1">{errors.description.message}</p>
+              <p className="text-xs text-red-500 mt-1">
+                {errors.description.message}
+              </p>
             )}
           </div>
 
           <div className="grid grid-cols-2 gap-5">
             {/* Status Selector */}
             <div>
-              <label htmlFor="status" className="block text-sm font-bold text-slate-700 mb-1.5">Status</label>
+              <label
+                htmlFor="status"
+                className="block text-sm font-bold text-slate-700 mb-1.5"
+              >
+                Status
+              </label>
               <select
                 id="status"
                 {...register("status")}
@@ -177,7 +204,12 @@ export default function TaskForm({ onClose, projectId, existingTask = null }) {
 
             {/* Assignee Selector */}
             <div>
-              <label htmlFor="assignee" className="block text-sm font-bold text-slate-700 mb-1.5">Assign To</label>
+              <label
+                htmlFor="assignee"
+                className="block text-sm font-bold text-slate-700 mb-1.5"
+              >
+                Assign To
+              </label>
               <select
                 id="assignee"
                 {...register("assignee")}
@@ -199,10 +231,15 @@ export default function TaskForm({ onClose, projectId, existingTask = null }) {
             </div>
           </div>
 
-         {/* Priority Toggle */}
-         <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">Priority</label>
-            <div className="flex bg-slate-50 border border-slate-200 rounded-lg p-1" role="radiogroup">
+          {/* Priority Toggle */}
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-2">
+              Priority
+            </label>
+            <div
+              className="flex bg-slate-50 border border-slate-200 rounded-lg p-1"
+              role="radiogroup"
+            >
               {["Low", "Medium", "High"].map((p) => (
                 <button
                   key={p}
@@ -210,7 +247,9 @@ export default function TaskForm({ onClose, projectId, existingTask = null }) {
                   role="radio"
                   aria-checked={priority === p}
                   disabled={isBusy}
-                  onClick={() => setValue("priority", p, { shouldValidate: true })}
+                  onClick={() =>
+                    setValue("priority", p, { shouldValidate: true })
+                  }
                   className={`flex-1 py-1.5 text-xs font-extrabold rounded-md transition-all border ${
                     priority === p
                       ? "bg-white shadow-sm border-slate-200 text-indigo-600"
@@ -222,7 +261,9 @@ export default function TaskForm({ onClose, projectId, existingTask = null }) {
               ))}
             </div>
             {errors.priority && (
-              <p className="text-xs text-red-500 mt-1">{errors.priority.message}</p>
+              <p className="text-xs text-red-500 mt-1">
+                {errors.priority.message}
+              </p>
             )}
           </div>
 

@@ -10,8 +10,8 @@ import {
   Upload,
   Info,
 } from "lucide-react";
-import { StatusBadge } from "../ui/StatusBadge";
-import { PriorityBadge } from "../ui/PriorityBadge";
+import { StatusBadge } from "../ui-a/StatusBadge";
+import { PriorityBadge } from "../ui-a/PriorityBadge";
 import toast from "react-hot-toast";
 
 export const TaskDetailsSidebar = ({ task }) => {

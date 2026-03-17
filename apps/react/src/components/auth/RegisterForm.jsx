@@ -1,16 +1,22 @@
 import { useForm, Controller } from "react-hook-form";
 import { Mail, Lock, User, ArrowRight, Loader2 } from "lucide-react";
-import ImageUpload from "../ui/ImageUpload";
+import ImageUpload from "../ui-a/ImageUpload";
 import { InputField } from "./InputField";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/authContext";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 const registerSchema = z.object({
   profileImage: z.instanceof(File).optional(),
-  firstName: z.string().min(1, "First Name is required").min(3, "First Name must be at least 3 characters"),
-  lastName: z.string().min(1, "Last Name is required").min(3, "Last Name must be at least 3 characters"),
+  firstName: z
+    .string()
+    .min(1, "First Name is required")
+    .min(3, "First Name must be at least 3 characters"),
+  lastName: z
+    .string()
+    .min(1, "Last Name is required")
+    .min(3, "Last Name must be at least 3 characters"),
   email: z.string().min(1, "Email is required").email("Invalid email"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
@@ -23,7 +29,7 @@ export default function RegisterForm() {
     register,
     handleSubmit,
     control,
-    formState: { errors,isSubmitting },
+    formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(registerSchema),
     defaultValues: {

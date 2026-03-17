@@ -8,6 +8,7 @@ import {
   UserCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button.jsx";
 
 const Hero = ({ navigateTo }) => {
   const navigate = useNavigate();
@@ -30,12 +31,9 @@ const Hero = ({ navigateTo }) => {
             projects faster.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <button
-              onClick={() => navigate(navigateTo)}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-full bg-indigo-600 px-8 py-3.5 text-base font-semibold text-white hover:bg-indigo-700 shadow-sm transition-all hover:shadow-indigo-200 hover:-translate-y-0.5"
-            >
+            <Button size="xl" onClick={() => navigate(navigateTo)}>
               Start for free <ArrowRight className="h-4 w-4" />
-            </button>
+            </Button>
           </div>
           <p className="text-sm text-slate-500 pt-2">
             Completely free to use. No hidden charges.

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ArrowLeft, Settings, Folder, Edit2, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { ConfirmModal } from "../ui/ConfirmModal"; //
+import { ConfirmModal } from "../ui-a/ConfirmModal"; //
 
 export const ProjectNavBar = ({ project, onEdit, onDelete }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

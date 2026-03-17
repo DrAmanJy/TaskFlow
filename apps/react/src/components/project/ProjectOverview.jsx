@@ -1,6 +1,6 @@
 import React from "react";
 import { BarChart3 } from "lucide-react";
-import { StatusBadge } from "../ui/StatusBadge";
+import { StatusBadge } from "../ui-a/StatusBadge";
 import { Link } from "react-router-dom"; // Added Link import
 
 export const ProjectOverview = ({

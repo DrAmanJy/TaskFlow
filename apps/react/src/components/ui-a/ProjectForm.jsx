@@ -1,75 +1,70 @@
-import React, { useState } from "react";
-import { Layout, Server, Store, Folder, X, Loader2 } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
+import React from "react";
+import { Layout, Server, Store, Folder, X, Loader2, Save } from "lucide-react";
+import { useAuth } from "../../context/authContext";
 import toast from "react-hot-toast";
 import { Navigate } from "react-router-dom";
 import { useProjects } from "../../context/ProjectContext";
+import * as z from "zod";
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { iconOptions } from "../../constants/iconOptions";
+
+const projectSchema = z.object({
+  title: z
+    .string()
+    .refine((val) => val !== "", { error: "Title is required" })
+    .min(3, { error: "Title must be at least 3 characters" }),
+  description: z
+    .string()
+    .max(128, { error: "Description cannot exceed 128 characters" })
+    .optional(),
+  status: z.enum(["todo", "in-progress", "completed"], {
+    error: "Status is required",
+  }),
+  icon: z.string().refine((val) => val !== "", { error: "Icon is required" }),
+});
 
 export default function ProjectForm({ onClose, existingProject = null }) {
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const { createProject, updateProject, status } = useProjects();
   const isEditMode = Boolean(existingProject);
+  const {
+    control,
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setValue,
+  } = useForm({
+    resolver: zodResolver(projectSchema),
+    defaultValues: {
+      title: existingProject?.title || "",
+      description: existingProject?.description || "",
+      status: existingProject?.status || "todo",
+      icon: existingProject?.icon || "layout",
+    },
+  });
 
   const isBusy = isEditMode
     ? status.updating === existingProject.id
     : status.submitting;
 
-  const [formData, setFormData] = useState({
-    title: existingProject?.title || "",
-    description: existingProject?.description || "",
-    status: existingProject?.status || "todo",
-    icon: existingProject?.icon || "layout",
-  });
+  const isActiveIcon = useWatch({ control, name: "icon" });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleIconSelect = (iconName) => {
-    setFormData((prev) => ({ ...prev, icon: iconName }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (isBusy) return;
-
+  const onSubmit = async (data) => {
     const success = isEditMode
-      ? await updateProject(existingProject.id, formData)
-      : await createProject(formData);
+      ? await updateProject(existingProject.id, data)
+      : await createProject(data);
 
     if (success) {
       onClose();
+      return;
     }
+    toast.error(
+      isEditMode
+        ? "Failed to save project changes"
+        : "Failed to create project",
+    );
   };
-
-  const iconOptions = [
-    {
-      id: "layout",
-      icon: Layout,
-      label: "UI / Web",
-      activeClass: "border-indigo-500 bg-indigo-50 text-indigo-600",
-    },
-    {
-      id: "server",
-      icon: Server,
-      label: "Backend",
-      activeClass: "border-emerald-500 bg-emerald-50 text-emerald-600",
-    },
-    {
-      id: "store",
-      icon: Store,
-      label: "Commerce",
-      activeClass: "border-orange-500 bg-orange-50 text-orange-600",
-    },
-    {
-      id: "folder",
-      icon: Folder,
-      label: "Other",
-      activeClass: "border-slate-500 bg-slate-100 text-slate-700",
-    },
-  ];
 
   if (isAuthLoading) return null;
 
@@ -77,7 +72,7 @@ export default function ProjectForm({ onClose, existingProject = null }) {
     toast.error("Please login before saving the project");
     return <Navigate to={"/auth?mode=login"} replace />;
   }
-
+  console.log(errors);
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-sans">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
@@ -94,7 +89,10 @@ export default function ProjectForm({ onClose, existingProject = null }) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-6">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="p-6 flex flex-col gap-6"
+        >
           {/* Project Name */}
           <div>
             <label
@@ -107,13 +105,16 @@ export default function ProjectForm({ onClose, existingProject = null }) {
               id="title"
               name="title"
               type="text"
-              required
               disabled={isBusy}
               placeholder="e.g. NexusWork Redesign"
-              value={formData.title}
-              onChange={handleChange}
+              {...register("title")}
               className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all text-slate-800 disabled:opacity-50"
             />
+            {errors.title && (
+              <p className="text-xs text-red-500 mt-1">
+                {errors.title.message}
+              </p>
+            )}
           </div>
 
           {/* Description */}
@@ -130,10 +131,14 @@ export default function ProjectForm({ onClose, existingProject = null }) {
               rows="3"
               disabled={isBusy}
               placeholder="Briefly describe the goal..."
-              value={formData.description}
-              onChange={handleChange}
+              {...register("description")}
               className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all text-slate-800 resize-none disabled:opacity-50"
             ></textarea>
+            {errors.description && (
+              <p className="text-xs text-red-500 mt-1">
+                {errors.description.message}
+              </p>
+            )}
           </div>
 
           {/* Status Dropdown */}
@@ -149,14 +154,18 @@ export default function ProjectForm({ onClose, existingProject = null }) {
                 id="status"
                 name="status"
                 disabled={isBusy}
-                value={formData.status}
-                onChange={handleChange}
+                {...register("status")}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg outline-none text-slate-800 cursor-pointer disabled:opacity-50"
               >
                 <option value="todo">To Do</option>
                 <option value="in-progress">In Progress</option>
                 <option value="completed">Completed</option>
               </select>
+              {errors.status && (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors.status.message}
+                </p>
+              )}
             </div>
           </div>
 
@@ -168,28 +177,31 @@ export default function ProjectForm({ onClose, existingProject = null }) {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {iconOptions.map((option) => {
                 const IconComponent = option.icon;
-                const isActive = formData.icon === option.id;
+                isActiveIcon === option.id;
                 return (
                   <button
                     key={option.id}
                     type="button"
                     disabled={isBusy}
-                    onClick={() => handleIconSelect(option.id)}
+                    onClick={() => setValue("icon", option.id)}
                     className={`flex flex-col items-center justify-center gap-2 py-3 px-2 border-2 rounded-xl transition-all ${
-                      isActive
+                      isActiveIcon === option.id
                         ? option.activeClass
                         : "border-slate-100 bg-white text-slate-500 hover:bg-slate-50"
                     } disabled:opacity-50`}
                   >
                     <IconComponent
                       className="w-6 h-6"
-                      strokeWidth={isActive ? 2.5 : 2}
+                      strokeWidth={isActiveIcon === option.id ? 2.5 : 2}
                     />
                     <span className="text-xs font-bold">{option.label}</span>
                   </button>
                 );
               })}
             </div>
+            {errors.icon && (
+              <p className="text-xs text-red-500 mt-1">{errors.icon.message}</p>
+            )}
           </div>
 
           {/* Footer Actions */}
@@ -204,18 +216,21 @@ export default function ProjectForm({ onClose, existingProject = null }) {
             </button>
             <button
               type="submit"
-              disabled={isBusy}
+              disabled={isBusy || isSubmitting}
               className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 flex items-center gap-2 disabled:opacity-70 transition-all active:scale-95"
             >
-              {isBusy ? (
+              {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Saving...</span>
+                  <span>
+                    {isEditMode ? "Saving Changes" : "Creating Project"}
+                  </span>
                 </>
-              ) : isEditMode ? (
-                "Save Changes"
               ) : (
-                "Create Project"
+                <>
+                  <Save className="w-4 h-4" />
+                  <span>{isEditMode ? "Save Changes" : "Create Project"}</span>
+                </>
               )}
             </button>
           </div>

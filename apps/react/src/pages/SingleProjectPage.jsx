@@ -8,8 +8,8 @@ import { ProjectDetailHeader } from "../components/project/ProjectDetailHeader";
 import { ProjectWorkspace } from "../components/project/ProjectWorkspace";
 import { ProjectNavBar } from "../components/project/ProjectNavBar";
 
-import ProjectForm from "../components/ui/ProjectForm";
-import TaskForm from "../components/ui/TaskForm";
+import ProjectForm from "../components/ui-a/ProjectForm";
+import TaskForm from "../components/ui-a/TaskForm";
 
 export default function SingleProjectPage() {
   const { projectId } = useParams();

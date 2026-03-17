@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button.jsx";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -24,12 +25,13 @@ const CTASection = (navigateTo) => {
               their projects and boost productivity.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <button
+              <Button
+                variant="secondary"
+                size="xl"
                 onClick={() => navigate(navigateTo)}
-                className="w-full sm:w-auto rounded-full bg-white px-8 py-3.5 text-base font-semibold text-indigo-600 hover:bg-indigo-50 transition-colors shadow-lg"
               >
                 Create your free account
-              </button>
+              </Button>
             </div>
           </div>
         </div>

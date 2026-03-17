@@ -1,6 +1,6 @@
 import React from "react";
 import { MessageSquare, Paperclip, Clock, FolderDot } from "lucide-react";
-import { PriorityBadge } from "../ui/PriorityBadge";
+import { PriorityBadge } from "../ui-a/PriorityBadge";
 import { Link } from "react-router-dom"; //
 
 export const TaskCard = ({ task, onDragStart, onDragEnd }) => {

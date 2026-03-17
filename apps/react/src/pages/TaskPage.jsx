@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import { PageHeader } from "../components/ui/PageHeader";
+import { PageHeader } from "../components/ui-a/PageHeader";
 import { TaskColumn } from "../components/tasks/TaskColumn";
 import { useTask } from "../context/TaskContext";
-import TaskForm from "../components/ui/TaskForm";
+import TaskForm from "../components/ui-a/TaskForm";
 import { Loader2 } from "lucide-react";
 
 export default function GlobalTaskBoard() {

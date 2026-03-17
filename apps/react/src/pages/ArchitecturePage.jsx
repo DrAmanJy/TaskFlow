@@ -2,7 +2,7 @@ import React from "react";
 import { Cpu, Database } from "lucide-react";
 import SystemDataFlow from "../components/sections/SystemDataFlow";
 import CoreModules from "../components/sections/CoreModules";
-import CodeBlock from "../components/ui/CodeBlock";
+import CodeBlock from "../components/ui-a/CodeBlock";
 import { userJson, taskJson, messageJson } from "../constants/dataModels";
 
 export default function ArchitecturePage() {
