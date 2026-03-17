@@ -1,9 +1,10 @@
 import Hero from "../components/sections/Hero";
 import FeatureSection from "../components/sections/FeatureSection";
 import CTASection from "../components/sections/CTASection";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/authContext";
 
 export default function Home() {
+  
   const { isAuthenticated } = useAuth();
   return (
     <>

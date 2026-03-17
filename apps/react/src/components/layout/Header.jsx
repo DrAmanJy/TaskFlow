@@ -1,20 +1,27 @@
 import React, { useState } from "react";
 import { Zap, Menu, X } from "lucide-react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/drawer";
 
 const Header = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Helper function to close mobile menu when navigating
-  const handleMobileNav = (path) => {
-    navigate(path);
-    setIsMobileMenuOpen(false);
-  };
-
-  // Helper for NavLink active states
   const navLinkClass = ({ isActive }) =>
     `text-sm font-medium transition-colors ${
+      isActive ? "text-indigo-600" : "text-slate-600 hover:text-indigo-600"
+    }`;
+
+  const mobileNavLinkClass = ({ isActive }) =>
+    `block text-left text-sm font-medium transition-colors ${
       isActive ? "text-indigo-600" : "text-slate-600 hover:text-indigo-600"
     }`;
 
@@ -23,17 +30,14 @@ const Header = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <div
-            className="flex items-center gap-2 cursor-pointer"
-            onClick={() => navigate("/")}
-          >
+          <Link to="/" className="flex items-center gap-2 cursor-pointer">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600">
               <Zap className="h-5 w-5 text-white" />
             </div>
             <span className="text-xl font-bold tracking-tight text-slate-900">
               NexusWork
             </span>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
@@ -50,74 +54,94 @@ const Header = () => {
 
           {/* Desktop CTAs */}
           <div className="hidden md:flex items-center gap-4">
-            <button
+            <Button
               onClick={() => navigate("/auth?mode=login")}
-              className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+              variant="secondary"
             >
               Log in
-            </button>
-            <button
-              onClick={() => navigate("/auth?mode=signup")}
-              className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all shadow-sm"
-            >
+            </Button>
+            <Button onClick={() => navigate("/auth?mode=signup")}>
               Get Started
-            </button>
+            </Button>
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2 text-slate-600"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
+          {/* Mobile Menu */}
+          <div className="md:hidden flex items-center">
+            {/* 1. Standard Button to open the drawer (No DrawerTrigger) */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-slate-600"
+              onClick={() => setIsOpen(true)}
+            >
               <Menu className="h-6 w-6" />
-            )}
-          </button>
+            </Button>
+
+            {/* 2. The Drawer itself */}
+            <Drawer direction="right" open={isOpen} onOpenChange={setIsOpen}>
+              <DrawerContent className="h-screen top-0 right-0 left-auto mt-0 w-64 rounded-none">
+                <DrawerHeader className="flex flex-row justify-between items-center border-b border-slate-200 pb-4 text-left">
+                  <div className="flex flex-col">
+                    <DrawerTitle className="text-slate-900">Menu</DrawerTitle>
+                    <DrawerDescription className="sr-only">
+                      Navigation links for mobile viewing
+                    </DrawerDescription>
+                  </div>
+
+                  <DrawerClose asChild>
+                    <Button variant="ghost" size="icon">
+                      <X className="h-5 w-5 text-slate-600" />
+                    </Button>
+                  </DrawerClose>
+                </DrawerHeader>
+
+                <div className="flex flex-col space-y-4 p-4 mt-2">
+                  <NavLink
+                    to="/"
+                    onClick={() => setIsOpen(false)}
+                    className={mobileNavLinkClass}
+                  >
+                    Home
+                  </NavLink>
+                  <NavLink
+                    to="/architecture"
+                    onClick={() => setIsOpen(false)}
+                    className={mobileNavLinkClass}
+                  >
+                    Architecture
+                  </NavLink>
+                  <NavLink
+                    to="/about"
+                    onClick={() => setIsOpen(false)}
+                    className={mobileNavLinkClass}
+                  >
+                    About
+                  </NavLink>
+
+                  <hr className="border-slate-100 my-2" />
+
+                  <Link
+                    to="/auth?mode=login"
+                    onClick={() => setIsOpen(false)}
+                    className="text-left text-sm font-medium text-slate-600 hover:text-indigo-600"
+                  >
+                    Log in
+                  </Link>
+                  <Link
+                    to="/auth?mode=signup"
+                    onClick={() => setIsOpen(false)}
+                    className="w-full"
+                  >
+                    <Button className="w-full bg-indigo-600 text-white hover:bg-indigo-700">
+                      Get Started
+                    </Button>
+                  </Link>
+                </div>
+              </DrawerContent>
+            </Drawer>
+          </div>
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-200 bg-white px-4 py-4 shadow-lg absolute w-full">
-          <div className="flex flex-col space-y-4">
-            <button
-              onClick={() => handleMobileNav("/")}
-              className="text-left text-sm font-medium text-slate-600"
-            >
-              Home
-            </button>
-            <button
-              onClick={() => handleMobileNav("/architecture")}
-              className="text-left text-sm font-medium text-slate-600"
-            >
-              Architecture
-            </button>
-            <button
-              onClick={() => handleMobileNav("/about")}
-              className="text-left text-sm font-medium text-slate-600"
-            >
-              About
-            </button>
-
-            <hr className="border-slate-100" />
-
-            <button
-              onClick={() => handleMobileNav("/login")}
-              className="text-left text-sm font-medium text-slate-600"
-            >
-              Log in
-            </button>
-            <button
-              onClick={() => handleMobileNav("/register")}
-              className="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm"
-            >
-              Get Started
-            </button>
-          </div>
-        </div>
-      )}
     </header>
   );
 };
