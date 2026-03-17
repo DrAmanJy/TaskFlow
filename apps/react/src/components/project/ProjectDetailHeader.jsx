@@ -1,6 +1,6 @@
 import React from "react";
 import { Calendar, Plus } from "lucide-react";
-import { StatusBadge } from "../ui/StatusBadge";
+import { StatusBadge } from "../ui-a/StatusBadge";
 
 export const ProjectDetailHeader = ({
   projectData,

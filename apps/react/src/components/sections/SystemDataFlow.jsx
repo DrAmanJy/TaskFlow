@@ -7,7 +7,7 @@ import {
   Database,
   ArrowDown,
 } from "lucide-react";
-import ArchitectureNode from "../ui/ArchitectureNode";
+import ArchitectureNode from "../ui-a/ArchitectureNode";
 
 const SystemDataFlow = () => (
   <section>

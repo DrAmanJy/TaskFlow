@@ -1,5 +1,5 @@
 import React from "react";
-import { Toggle } from "../ui/Toggle";
+import { Toggle } from "../ui-a/Toggle";
 
 export const NotificationsTab = ({ notifications, setNotifications }) => {
   return (

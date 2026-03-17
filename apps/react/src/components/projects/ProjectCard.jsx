@@ -8,8 +8,9 @@ import {
   Edit2,
 } from "lucide-react";
 import { useProjects } from "../../context/ProjectContext";
-import { ConfirmModal } from "../ui/ConfirmModal";
+import { ConfirmModal } from "../ui-a/ConfirmModal";
 import { Link } from "react-router-dom";
+import { iconOptions } from "../../constants/iconOptions";
 
 const StatusBadge = ({ status }) => {
   const styles = {
@@ -50,7 +51,8 @@ export const ProjectCard = ({ project, onEdit }) => {
   };
 
   const isDeleting = status?.deleting === project.id;
-
+  const selectedIcon = iconOptions.find((icon) => project.icon === icon.id);
+  const Icon = selectedIcon?.icon || Folder;
   return (
     <>
       <ConfirmModal
@@ -71,7 +73,7 @@ export const ProjectCard = ({ project, onEdit }) => {
         <div className="p-6 flex-1">
           <div className="flex justify-between items-start mb-4">
             <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
-              <Folder className="w-6 h-6" />
+              <Icon className="w-6 h-6" />
             </div>
 
             {/* 3-Dot Dropdown Menu */}

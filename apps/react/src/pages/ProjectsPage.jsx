@@ -2,8 +2,8 @@ import { ProjectCard } from "../components/projects/ProjectCard";
 import { ProjectStats } from "../components/projects/ProjectStats";
 import { CreateProjectCard } from "../components/projects/CreateProjectCard";
 import { useState, useEffect, useRef } from "react";
-import { PageHeader } from "../components/ui/PageHeader";
-import ProjectForm from "../components/ui/ProjectForm";
+import { PageHeader } from "../components/ui-a/PageHeader";
+import ProjectForm from "../components/ui-a/ProjectForm";
 import { useProjects } from "../context/ProjectContext";
 import { Loader2, SearchX } from "lucide-react";
 
@@ -55,7 +55,6 @@ export default function ProjectsPage() {
         buttonText="Create Project"
         onButtonClick={() => setShowProjectForm(true)}
         onSearchChange={setSearchTerm}
-        // FIX: Use 'searching' status for the header spinner
         searching={status?.searching}
       />
 
@@ -70,7 +69,6 @@ export default function ProjectsPage() {
         <ProjectStats projects={projects} />
 
         <div className="relative mt-8">
-          {/* Background loading overlay for search results */}
           {status?.searching && (
             <div className="absolute inset-0 z-20 bg-slate-50/40 backdrop-blur-[1px] flex items-center justify-center rounded-3xl">
               <Loader2 className="animate-spin text-indigo-600 w-8 h-8" />
