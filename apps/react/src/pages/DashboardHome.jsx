@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import StatsOverview from "../components/dashboard/StatsOverview";
 import TaskList from "../components/dashboard/TaskList";
-import { PageHeader } from "../components/ui/PageHeader";
+import { PageHeader } from "../components/ui-a/PageHeader";
 import { useTask } from "../context/TaskContext";
 import { useProjects } from "../context/ProjectContext";
 import { Loader2, Users } from "lucide-react";

@@ -1,13 +1,11 @@
-import { useState } from "react";
 import { Outlet, Navigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
-import { Menu } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/authContext";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const DashboardLayout = () => {
   const { isLoading, user, isAuthenticated } = useAuth();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
 
   if (isLoading) {
     return (
@@ -18,34 +16,27 @@ const DashboardLayout = () => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/auth?type=login" replace />;
+    return <Navigate to="/auth?mode=login" replace />;
   }
+
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
-      {/* Sidebar */}
-      <Sidebar
-        isOpen={isSidebarOpen}
-        setIsOpen={setIsSidebarOpen}
-        user={user}
-      />
+    <TooltipProvider>
+      <SidebarProvider>
+        <div className="flex h-screen bg-slate-50 w-full overflow-hidden font-sans">
+          <Sidebar user={user} />
 
-      {/* Main Content Area */}
-      <div className="flex flex-col flex-1 min-w-0 relative">
-        {/* Floating Mobile Menu Button */}
-        <button
-          onClick={toggleSidebar}
-          aria-label="Toggle Sidebar"
-          className="fixed top-4 left-4 z-20 p-2 bg-white/90 backdrop-blur-sm shadow-sm border border-slate-200 rounded-md hover:bg-slate-50 md:hidden"
-        >
-          <Menu className="w-5 h-5 text-slate-700" />
-        </button>
+          <div className="flex flex-col flex-1 min-w-0 relative">
+            <div className="md:hidden p-4 border-b border-slate-200 bg-white sticky top-0 z-20">
+              <SidebarTrigger className="text-slate-700" />
+            </div>
 
-        {/* The Outlet now takes up the entire space and renders its own headers */}
-        <main className="flex-1 overflow-y-auto scroll-smooth">
-          <Outlet />
-        </main>
-      </div>
-    </div>
+            <main className="flex-1 overflow-y-auto scroll-smooth">
+              <Outlet />
+            </main>
+          </div>
+        </div>
+      </SidebarProvider>
+    </TooltipProvider>
   );
 };
 
