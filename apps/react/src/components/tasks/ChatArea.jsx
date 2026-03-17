@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Smile, Send, Loader2 } from "lucide-react";
 import { MessageService } from "../../api/MessageService";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/authContext";
 import toast from "react-hot-toast";
 
 export const ChatArea = ({ taskId }) => {

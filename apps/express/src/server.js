@@ -28,7 +28,15 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(cookieParser());
 
 // 2. Routes
-app.use("/api/auth", authRouter);
+
+app.use(
+  "/api/auth",
+  (req, res, next) => {
+    console.log(req.path);
+    next();
+  },
+  authRouter,
+);
 app.use("/api/projects", projectRouter);
 app.use("/api/tasks", taskRouter);
 app.use("/api/user", userRouter);

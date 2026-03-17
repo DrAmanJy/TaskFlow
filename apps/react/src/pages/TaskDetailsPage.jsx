@@ -12,7 +12,7 @@ import { TaskHeader } from "../components/tasks/TaskHeader";
 import { TaskDetailsSidebar } from "../components/tasks/TaskDetailsSidebar";
 import { ChatArea } from "../components/tasks/ChatArea";
 import { useTask } from "../context/TaskContext";
-import TaskForm from "../components/ui/TaskForm";
+import TaskForm from "../components/ui-a/TaskForm";
 
 export default function TaskDetailsPage() {
   const { taskId } = useParams();
