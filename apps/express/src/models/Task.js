@@ -13,7 +13,7 @@ const taskSchema = new mongoose.Schema(
     assignee: [
       {
         userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-        role: { type: String, enum: ["team", "staff"], default: "team" },
+        role: { type: String, enum: ["team", "staff", "owner"], default: "team" },
       },
     ],
     createdBy: {
