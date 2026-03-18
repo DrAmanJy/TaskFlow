@@ -28,4 +28,10 @@ export const TaskService = {
       method: "PATCH",
       body: JSON.stringify(data),
     }),
+
+  assignTask: (taskId, assigneeId) =>
+    apiClient(`/tasks/${taskId}/assign`, {
+      method: "PATCH",
+      body: JSON.stringify({ assigneeId }),
+    }),
 };
