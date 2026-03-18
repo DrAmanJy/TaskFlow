@@ -40,6 +40,15 @@ export default function AuthProvider({ children }) {
     window.location.href = "/auth?mode=login";
   };
 
+  const refreshProfile = async () => {
+    try {
+      const result = await authService.getProfile();
+      setUser(result.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem("accessToken");
@@ -65,6 +74,7 @@ export default function AuthProvider({ children }) {
         register,
         login,
         logout,
+        refreshProfile,
         isAuthenticated: !!user,
       }}
     >
