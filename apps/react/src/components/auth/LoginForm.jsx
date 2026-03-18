@@ -1,23 +1,36 @@
 import { useForm } from "react-hook-form";
-import { Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
-import { InputField } from "./InputField";
-import { Link, Navigate, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/authContext";
+import { Link } from "react-router-dom";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
+import { InputField } from "../../components/InputField";
+import { InputInvalid } from "../../components/InputInvalid";
 
 const loginSchema = z.object({
-  email: z.string().min(1, "Email is required").email("Invalid email"),
+  email: z.string().min(1, "Email is required").email("Email is invalid"),
   password: z
     .string()
     .refine((val) => val !== "", { message: "Password is required" })
     .min(6, "Password must be at least 6 characters"),
 });
 
-export default function LoginForm() {
-  const { isLoading, isAuthenticated, login } = useAuth();
-  const navigate = useNavigate();
-
+export default function LoginForm({
+  onSubmit,
+}) {
   const {
     register,
     handleSubmit,
@@ -28,75 +41,95 @@ export default function LoginForm() {
       email: "",
       password: "",
     },
-    mode: "onTouched",
   });
 
-  if (isLoading) return null;
-
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  const onSubmit = async (data) => {
-    const success = await login(data);
-    if (success) {
-      navigate("/dashboard");
-    }
-  };
-
   return (
-    <div className="sm:mx-auto sm:w-full sm:max-w-md">
-      <div className="bg-white py-8 px-4 shadow-sm border border-slate-200 sm:rounded-2xl sm:px-10">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold text-slate-900">Welcome back</h1>
-        </div>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-1">
-          <InputField
-            label="Email Address"
-            name="email"
-            type="email"
-            icon={Mail}
-            placeholder="aman@example.com"
-            register={register}
-            error={errors.email}
-          />
+    <div
+      className={"flex flex-col gap-6 w-full max-w-md"}    >
+      <Card className="shadow-sm border border-border">
+        <CardHeader>
+          <CardTitle>Login to your account</CardTitle>
+          <CardDescription>
+            Enter your email below to login to your account
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <FieldGroup className="space-y-4">
+              {errors.email ? (
+                <InputInvalid
+                  id="email"
+                  type="email"
+                  label="Email"
+                  placeholder="m@example.com"
+                  registration={register("email")}
+                  error={errors.email}
+                />
+              ) : (
+                <InputField
+                  id="email"
+                  type="email"
+                  label="Email"
+                  placeholder="m@example.com"
+                  registration={register("email")}
+                />
+              )}
 
-          <InputField
-            label="Password"
-            name="password"
-            type="password"
-            icon={Lock}
-            placeholder="••••••••"
-            register={register}
-            error={errors.password}
-          />
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full flex justify-center items-center py-3.5 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all active:scale-[0.98] disabled:opacity-70 mt-2"
-          >
-            {isSubmitting ? (
-              <Loader2 className="animate-spin h-5 w-5" />
-            ) : (
-              <>
-                Sign in <ArrowRight className="ml-2 h-4 w-4" />
-              </>
-            )}
-          </button>
-        </form>
-        <div className="mt-8 text-center pt-6 border-t border-slate-100">
-          <p className="text-sm text-slate-600">
-            Don't have an account?{" "}
-            <Link
-              to={"/auth?mode=signup"}
-              className="font-bold text-indigo-600 hover:text-indigo-500 transition-colors"
-            >
-              Sign up
-            </Link>
-          </p>
-        </div>
-      </div>
+              <Field>
+                {errors.password ? (
+                  <InputInvalid
+                    id="password"
+                    type="password"
+                    label="Password"
+                    placeholder=""
+                    registration={register("password")}
+                    error={errors.password}
+                  />
+                ) : (
+                  <InputField
+                    id="password"
+                    type="password"
+                    label="Password"
+                    placeholder=""
+                    registration={register("password")}
+                  />
+                )}
+                <a
+                  href="#"
+                  className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                >
+                  Forgot your password?
+                </a>
+              </Field>
+              <Field>
+                <div className="flex flex-col gap-3">
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting
+                      ? "Logging in..."
+                      : "Login"}
+                  </Button>
+                  <Button variant="outline" type="button" className="w-full">
+                    Login with Google
+                  </Button>
+                  <FieldDescription className="text-center text-sm">
+                    Don&apos;t have an account?{" "}
+                    <Link
+                      to="/auth?mode=signup"
+                      className="font-medium underline underline-offset-4"
+                    >
+                      Sign up
+                    </Link>
+                  </FieldDescription>
+                </div>
+              </Field>
+            </FieldGroup>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
