@@ -67,15 +67,18 @@ export const deleteProject = async (req, res) => {
   return sendResponse(res, 200, project, "Project deleted successfully");
 };
 
-export const addTeamMember = async (req, res) => {
-  const { email } = req.body;
-  const project = await projectService.addTeamMember(
+export const inviteMember = async (req, res) => {
+  const { email, role } = req.body;
+  const result = await projectService.inviteTeamMember(
     email,
     req.params.id,
     req.user._id,
+    role
   );
-  return sendResponse(res, 200, project, "User successfully added to team");
+  return sendResponse(res, 200, result, "User successfully invited to team");
 };
+
+
 
 export const removeTeamMember = async (req, res) => {
   const { email } = req.body;
