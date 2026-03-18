@@ -48,6 +48,39 @@ export default function ArchitecturePage() {
             <CodeBlock title="Message_Model" code={messageJson} />
           </div>
         </section>
+
+        {/* Tech Stack Section */}
+        <section>
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8">
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <Cpu className="w-6 h-6 text-indigo-600" /> Project Tech Stack
+            </h2>
+          </div>
+          <p className="text-slate-600 mb-8 max-w-3xl leading-relaxed">
+            NexusWork (by DrAmanJy/TaskFlow) is built with a modern MERN monorepo using standard pnpm workspaces for streamlined development and deployment. This setup promotes strict separation of concerns and lightning-fast rebuilds.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-white p-8 border border-slate-200 rounded-2xl shadow-sm">
+              <h3 className="text-xl font-bold mb-4 border-b border-slate-100 pb-3">Frontend (React)</h3>
+              <ul className="space-y-4 text-slate-600">
+                <li className="flex items-start"><strong className="text-slate-900 w-28 shrink-0">Framework:</strong> <span>React 19 (Vite)</span></li>
+                <li className="flex items-start"><strong className="text-slate-900 w-28 shrink-0">Styling:</strong> <span>Tailwind CSS v4, Shadcn UI, Radix UI</span></li>
+                <li className="flex items-start"><strong className="text-slate-900 w-28 shrink-0">Routing:</strong> <span>React Router v7</span></li>
+                <li className="flex items-start"><strong className="text-slate-900 w-28 shrink-0">Libraries:</strong> <span>Lucide React, Zod, React Hook Form</span></li>
+              </ul>
+            </div>
+            <div className="bg-white p-8 border border-slate-200 rounded-2xl shadow-sm">
+              <h3 className="text-xl font-bold mb-4 border-b border-slate-100 pb-3">Backend (Express)</h3>
+              <ul className="space-y-4 text-slate-600">
+                <li className="flex items-start"><strong className="text-slate-900 w-28 shrink-0">Core:</strong> <span>Node.js, Express 5</span></li>
+                <li className="flex items-start"><strong className="text-slate-900 w-28 shrink-0">Database:</strong> <span>MongoDB via Mongoose</span></li>
+                <li className="flex items-start"><strong className="text-slate-900 w-28 shrink-0">Security:</strong> <span>JWT, bcrypt, CORS</span></li>
+                <li className="flex items-start"><strong className="text-slate-900 w-28 shrink-0">Media:</strong> <span>Cloudinary, Multer</span></li>
+              </ul>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );

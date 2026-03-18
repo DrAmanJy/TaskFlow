@@ -23,7 +23,7 @@ export const projectService = {
 
   inviteTeam: (id, email) =>
     apiClient(`/projects/${id}/members/invite`, {
-      method: "PATCH",
+      method: "POST",
       body: JSON.stringify({ email }),
     }),
 

@@ -9,14 +9,14 @@ export const ProfileTab = ({ profileData, setProfileData, currentUser }) => {
         <div className="relative group">
           <div className="w-24 h-24 rounded-full bg-slate-100 border-4 border-white shadow-md overflow-hidden ring-1 ring-slate-200">
             <img
-              src={currentUser.profile}
+              src={profileData.profileImage || currentUser?.profile}
               alt="Avatar"
               className="w-full h-full object-cover"
             />
           </div>
           <button
             type="button"
-            className="absolute bottom-0 right-0 p-2 rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 transition-colors border-2 border-white"
+            className="absolute bottom-0 right-0 p-2 rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 transition-colors border-2 border-white pointer-events-none"
           >
             <Camera className="w-4 h-4" />
           </button>
@@ -24,17 +24,30 @@ export const ProfileTab = ({ profileData, setProfileData, currentUser }) => {
         <div>
           <h3 className="font-semibold text-slate-900">Profile Picture</h3>
           <p className="text-xs text-slate-500 mb-3 max-w-xs mt-1">
-            PNG, JPG or GIF. Maximum file size 2MB. Recommended 256x256px.
+            PNG, JPG or GIF. Maximum file size 3MB. Recommended 256x256px.
           </p>
           <div className="flex gap-3">
-            <button
-              type="button"
-              className="text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg"
-            >
+            <label className="cursor-pointer text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors">
               Upload New
-            </button>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      setProfileData({ ...profileData, profileImage: reader.result });
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+            </label>
             <button
               type="button"
+              onClick={() => setProfileData({ ...profileData, profileImage: null })}
               className="text-sm font-medium text-slate-500 hover:text-red-600 px-3 py-1.5 rounded-lg"
             >
               Remove

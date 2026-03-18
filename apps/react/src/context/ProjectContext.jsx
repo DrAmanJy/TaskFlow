@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { projectService } from "../api/projectService";
 import toast from "react-hot-toast";
+import { useAuth } from "./authContext";
 
 const ProjectContext = createContext();
 
 export const ProjectProvider = ({ children }) => {
+  const { isAuthenticated } = useAuth();
   const [projects, setProjects] = useState([]);
   const [status, setStatus] = useState({
     loading: false,
@@ -150,8 +152,10 @@ export const ProjectProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    loadProjects();
-  }, []);
+    if (isAuthenticated) {
+      loadProjects();
+    }
+  }, [isAuthenticated]);
 
   return (
     <ProjectContext.Provider

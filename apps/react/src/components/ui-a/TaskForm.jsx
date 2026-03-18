@@ -17,8 +17,6 @@ const taskSchema = z.object({
 
   description: z
     .string()
-    .refine((val) => val !== "", { error: "Description is required" })
-    .min(3, "Description must be at least 3 characters")
     .max(128, "Description cannot exceed 128 characters"),
 
   status: z.enum(["todo", "in-progress", "done"], {
@@ -29,9 +27,7 @@ const taskSchema = z.object({
     error: "Priority is required",
   }),
 
-  assignee: z
-    .uuid("Invalid id")
-    .refine((val) => val !== "", { error: "assignee is required" }),
+  assignee: z.string().optional(),
 });
 
 export default function TaskForm({ onClose, projectId, existingTask = null }) {
@@ -250,11 +246,10 @@ export default function TaskForm({ onClose, projectId, existingTask = null }) {
                   onClick={() =>
                     setValue("priority", p, { shouldValidate: true })
                   }
-                  className={`flex-1 py-1.5 text-xs font-extrabold rounded-md transition-all border ${
-                    priority === p
-                      ? "bg-white shadow-sm border-slate-200 text-indigo-600"
-                      : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
-                  }`}
+                  className={`flex-1 py-1.5 text-xs font-extrabold rounded-md transition-all border ${priority === p
+                    ? "bg-white shadow-sm border-slate-200 text-indigo-600"
+                    : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                    }`}
                 >
                   {p}
                 </button>

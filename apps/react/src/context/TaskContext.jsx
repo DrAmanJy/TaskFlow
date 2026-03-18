@@ -7,10 +7,12 @@ import {
 } from "react";
 import { TaskService } from "../api/taskService";
 import toast from "react-hot-toast";
+import { useAuth } from "./authContext";
 
 const TaskContext = createContext();
 
 export const TaskProvider = ({ children }) => {
+  const { isAuthenticated } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [status, setStatus] = useState({
     loading: false,
@@ -134,9 +136,26 @@ export const TaskProvider = ({ children }) => {
     }
   }, []);
 
+  const assignTask = useCallback(async (taskId, assigneeId) => {
+    setStatus((prev) => ({ ...prev, updating: taskId }));
+    try {
+      const result = await TaskService.assignTask(taskId, assigneeId);
+      setTasks((prev) => prev.map((t) => (t.id === taskId ? result.data : t)));
+      toast.success(result.message || "Task assigned successfully");
+      return true;
+    } catch (error) {
+      toast.error(error.message || "Assignment failed");
+      return false;
+    } finally {
+      setStatus((prev) => ({ ...prev, updating: null }));
+    }
+  }, []);
+
   useEffect(() => {
-    loadTasks();
-  }, [loadTasks]);
+    if (isAuthenticated) {
+      loadTasks();
+    }
+  }, [isAuthenticated]);
 
   return (
     <TaskContext.Provider
@@ -151,6 +170,7 @@ export const TaskProvider = ({ children }) => {
         updateTask,
         deleteTask,
         moveTask,
+        assignTask,
       }}
     >
       {children}

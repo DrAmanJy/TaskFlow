@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { SidebarTrigger } from "../ui/sidebar";
 import { Search, Plus, X, Menu, Loader2 } from "lucide-react";
 
 export const PageHeader = ({
@@ -53,12 +54,7 @@ export const PageHeader = ({
         )}
 
         <div className="flex items-center gap-4">
-          <button
-            onClick={toggleSidebar}
-            className="w-10 h-10 shrink-0 rounded-xl bg-indigo-600 md:hidden flex items-center justify-center text-white shadow-lg shadow-indigo-100 active:scale-95 transition-all"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
+          <SidebarTrigger className="w-10 h-10 shrink-0 rounded-xl bg-indigo-600 hover:bg-indigo-700 md:hidden flex items-center justify-center text-white hover:text-white shadow-lg shadow-indigo-100 active:scale-95 transition-all" />
           <div className="min-w-0">
             <h1 className="text-xl font-extrabold text-slate-900 truncate tracking-tight">
               {title}
