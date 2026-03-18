@@ -3,6 +3,7 @@ import User from "../models/User.js";
 import AppError from "../utils/AppError.js";
 import { validateIds } from "../utils/idValidator.js";
 import Project from "../models/Project.js";
+import { uploadImage } from "../utils/cloudinary.js";
 
 const findUserOrThrow = async (userId) => {
   validateIds({ User: userId });
@@ -13,42 +14,7 @@ const findUserOrThrow = async (userId) => {
   return user;
 };
 
-export const createUser = async (userData) => {
-  const { firstName, lastName, email, password } = userData;
-
-  if (!firstName || !lastName || !email || !password) {
-    throw new AppError("All fields are required", 400);
-  }
-
-  const existingUser = await User.findOne({ email: email.toLowerCase() });
-  if (existingUser) {
-    throw new AppError("Email already exists", 400);
-  }
-
-  return await User.create({
-    firstName,
-    lastName,
-    email: email.toLowerCase(),
-    password,
-  });
-};
-
-export const authenticateUser = async (email, password) => {
-  if (!email || !password) {
-    throw new AppError("All fields are required", 400);
-  }
-  const user = await User.findOne({ email: email.toLowerCase() });
-  if (!user) {
-    throw new AppError("Invalid email, user not found", 404);
-  }
-
-  const isValidPassword = await user.comparePassword(password);
-  if (!isValidPassword) {
-    throw new AppError("Invalid password", 400);
-  }
-
-  return user;
-};
+// Auth functions migrated to authService.js
 
 export const updateUser = async (userId, updateData) => {
   validateIds({ User: userId });
@@ -66,7 +32,6 @@ export const updateUser = async (userId, updateData) => {
     "firstName",
     "lastName",
     "jobTitle",
-    "profile",
     "email",
   ];
   const filteredData = {};
@@ -74,6 +39,10 @@ export const updateUser = async (userId, updateData) => {
   Object.keys(updateData).forEach((key) => {
     if (allowedFields.includes(key)) filteredData[key] = updateData[key];
   });
+
+  if (updateData.profileImage && updateData.profileImage.startsWith("data:image")) {
+    filteredData.profile = await uploadImage(updateData.profileImage);
+  }
 
   Object.assign(user, filteredData);
 
@@ -103,4 +72,48 @@ export const findUserByEmail = async (userEmail) => {
   }
 
   return user;
+};
+
+export const getPendingInvites = async (userId) => {
+  const user = await User.findById(userId)
+    .populate("invites.project", "title icon status")
+    .populate("invites.invitedBy", "firstName lastName profile");
+  
+  if (!user) throw new AppError("User not found", 404);
+
+  return user.invites.filter(invite => invite.status === "pending");
+};
+
+export const acceptInvite = async (inviteId, userId) => {
+  const user = await findUserOrThrow(userId);
+  const invite = user.invites.id(inviteId);
+  if (!invite) throw new AppError("Invite not found", 404);
+
+  if (invite.status !== "pending") {
+    throw new AppError("Invite is no longer pending", 400);
+  }
+
+  await Project.findByIdAndUpdate(invite.project, {
+    $addToSet: { team: userId }
+  });
+
+  invite.status = "accepted";
+  await user.save();
+  
+  return { message: "Invitation accepted successfully" };
+};
+
+export const declineInvite = async (inviteId, userId) => {
+  const user = await findUserOrThrow(userId);
+  const invite = user.invites.id(inviteId);
+  if (!invite) throw new AppError("Invite not found", 404);
+
+  if (invite.status !== "pending") {
+    throw new AppError("Invite is no longer pending", 400);
+  }
+
+  invite.status = "declined";
+  await user.save();
+  
+  return { message: "Invitation declined" };
 };
