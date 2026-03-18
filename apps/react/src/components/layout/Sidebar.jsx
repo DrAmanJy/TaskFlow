@@ -18,16 +18,16 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const Sidebar = ({ user }) => {
-  const { pathname } = useLocation();
-  const { isMobile, setOpenMobile, toggleSidebar } = useSidebar();
+const navItems = [
+  { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+  { name: "Projects", path: "/projects", icon: KanbanSquare },
+  { name: "Tasks", path: "/tasks", icon: CheckCircle2 },
+  { name: "Settings", path: "/settings", icon: Settings },
+];
 
-  const navItems = [
-    { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-    { name: "Projects", path: "/projects", icon: KanbanSquare },
-    { name: "Tasks", path: "/tasks", icon: CheckCircle2 },
-    { name: "Settings", path: "/settings", icon: Settings },
-  ];
+const SidebarLinkItem = ({ item, isMobile, setOpenMobile }) => {
+  const { pathname } = useLocation();
+  const Icon = item.icon;
 
   const isPathActive = (path) => {
     if (pathname === path) return true;
@@ -35,22 +35,50 @@ const Sidebar = ({ user }) => {
     return false;
   };
 
+  const active = isPathActive(item.path);
+
   const handleLinkClick = () => {
     if (isMobile) setOpenMobile(false);
   };
 
   return (
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        asChild
+        isActive={active}
+        tooltip={item.name}
+        className="h-12 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/40 data-[active=true]:bg-indigo-600 data-[active=true]:text-white hover:bg-slate-800 hover:text-white group-data-[collapsible=icon]:justify-center"
+      >
+        <Link
+          to={item.path}
+          onClick={handleLinkClick}
+          className="flex items-center gap-3 w-full group-data-[collapsible=icon]:justify-center"
+        >
+          <Icon className="w-5 h-5 shrink-0" />
+          <span className="font-medium group-data-[collapsible=icon]:hidden">
+            {item.name}
+          </span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+};
+
+const Sidebar = ({ user }) => {
+  console.log("sidebar render")
+
+  const { isMobile, setOpenMobile, toggleSidebar } = useSidebar();
+
+  return (
     <UISidebar
       collapsible="icon"
-      // 1. FIXED BACKGROUND: Using a reliable descendant selector that works across all Tailwind versions
-      className="border-r border-slate-800 [&_[data-sidebar=sidebar-inner]]:bg-slate-900 [&_[data-sidebar=sidebar-inner]]:text-slate-300"
+      className="border-r  [&_[data-sidebar=sidebar-inner]]:bg-slate-900 [&_[data-sidebar=sidebar-inner]]:text-slate-300"
     >
       <SidebarHeader className="p-4">
-        {/* 2. FIXED LAYOUT: Using standard flexbox and relying on shadcn's native hide classes */}
-        <div className="flex items-center gap-3 overflow-hidden">
+        <div className="flex items-center gap-3 overflow-hidden group-data-[collapsible=icon]:justify-center">
           <button
             onClick={toggleSidebar}
-            className="bg-indigo-500 p-2 rounded-lg hover:bg-indigo-400 transition-colors cursor-pointer shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/60"
+            className="bg-indigo-500 p-2 rounded-lg hover:bg-indigo-400 transition-colors cursor-pointer shrink-0 "
             aria-label="Toggle Sidebar"
             type="button"
           >
@@ -66,40 +94,21 @@ const Sidebar = ({ user }) => {
       <SidebarContent className="px-3">
         <nav aria-label="Main navigation">
           <SidebarMenu className="gap-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const active = isPathActive(item.path);
-
-              return (
-                <SidebarMenuItem key={item.name}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={active}
-                    tooltip={item.name}
-                    // 3. FIXED BUTTONS: Removed the manual padding/justify ternaries that break shadcn's layout
-                    className="h-12 rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/40 data-[active=true]:bg-indigo-600 data-[active=true]:text-white hover:bg-slate-800 hover:text-white"
-                  >
-                    <Link
-                      to={item.path}
-                      onClick={handleLinkClick}
-                      className="flex items-center gap-3"
-                    >
-                      <Icon className="w-5 h-5 shrink-0" />
-                      <span className="font-medium group-data-[collapsible=icon]:hidden">
-                        {item.name}
-                      </span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              );
-            })}
+            {navItems.map((item) => (
+              <SidebarLinkItem
+                key={item.name}
+                item={item}
+                isMobile={isMobile}
+                setOpenMobile={setOpenMobile}
+              />
+            ))}
           </SidebarMenu>
         </nav>
       </SidebarContent>
 
       <SidebarFooter className="p-4 border-t border-slate-800">
         <div
-          className="flex items-center gap-3 overflow-hidden"
+          className="flex items-center gap-3  group-data-[collapsible=icon]:justify-center"
           title={user?.fullName}
         >
           <div className="w-8 h-8 shrink-0 rounded-full overflow-hidden ring-2 ring-slate-800 bg-slate-800">
@@ -114,7 +123,7 @@ const Sidebar = ({ user }) => {
           </div>
 
           <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-            <p className="text-sm font-medium text-white truncate">
+            <p className="text-sm font-medium  truncate">
               {user?.fullName}
             </p>
             <p className="text-xs text-slate-500 truncate">@{user?.role}</p>

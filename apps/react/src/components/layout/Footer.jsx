@@ -24,7 +24,9 @@ const Footer = () => {
 
           <div className="flex gap-4">
             <a
-              href="#"
+              href="https://github.com/DrAmanJy/TaskFlow"
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-800 text-sm font-medium hover:bg-slate-700 transition-colors"
             >
               <Code className="w-4 h-4" /> Source Code
@@ -38,10 +40,12 @@ const Footer = () => {
             purposes.
           </p>
           <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-white transition-colors">
+            <a href="https://github.com/DrAmanJy" target="_blank"
+              rel="noopener noreferrer" className="hover:text-white transition-colors">
               GitHub
             </a>
-            <a href="#" className="hover:text-white transition-colors">
+            <a href="https://www.linkedin.com/in/aman-lather-54619135a" target="_blank"
+              rel="noopener noreferrer" className="hover:text-white transition-colors">
               LinkedIn
             </a>
           </div>

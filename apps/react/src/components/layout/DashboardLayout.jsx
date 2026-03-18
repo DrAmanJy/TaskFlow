@@ -25,15 +25,15 @@ const DashboardLayout = () => {
         <div className="flex h-screen bg-slate-50 w-full overflow-hidden font-sans">
           <Sidebar user={user} />
 
-          <div className="flex flex-col flex-1 min-w-0 relative">
-            <div className="md:hidden p-4 border-b border-slate-200 bg-white sticky top-0 z-20">
-              <SidebarTrigger className="text-slate-700" />
-            </div>
 
-            <main className="flex-1 overflow-y-auto scroll-smooth">
-              <Outlet />
-            </main>
-          </div>
+          {/* <div className="md:hidden p-4 border-b border-slate-200 bg-white sticky top-0 z-20">
+              <SidebarTrigger className="text-slate-700" />
+            </div> */}
+
+          <main className="flex-1 overflow-y-auto scroll-smooth">
+            <Outlet />
+          </main>
+
         </div>
       </SidebarProvider>
     </TooltipProvider>
