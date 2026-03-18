@@ -15,6 +15,6 @@ router.put("/:id", controller.updateTask);
 router.delete("/:id", controller.deleteTask);
 
 router.patch("/:id/status", controller.updateTaskStatus);
-// router.patch("/:id/assign", controller.assignTask);
+router.patch("/:id/assign", controller.assignTask);
 
 export default router;

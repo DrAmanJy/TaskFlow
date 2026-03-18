@@ -7,28 +7,20 @@ import { validateIds } from "../utils/idValidator.js";
 export const createNewTask = async (taskData, creatorId) => {
   const { title, projectId, assigneeId, position, ...otherData } = taskData;
 
-  if (!title || !projectId || !assigneeId) {
-    throw new AppError("Title, Project, and Assignee are required", 400);
+  if (!title || !projectId) {
+    throw new AppError("Title and Project are required", 400);
   }
 
   const project = await verifyProjectAccess(projectId, creatorId);
-
-  // Verify assignee belongs to project
-  const isAssigneeValid =
-    idOf(project.createdBy) === idOf(assigneeId) ||
-    project.team.some((mId) => idOf(mId) === idOf(assigneeId));
-
-  if (!isAssigneeValid) {
-    throw new AppError("Assignee must be a member of this project", 400);
-  }
+  const assigneeArray = parseAssignees(assigneeId, project);
 
   const task = await Task.create({
     ...otherData,
     title,
     project: projectId,
     createdBy: creatorId,
-    assignee: [{ userId: assigneeId }],
-    position: position || Date.now(), // Default to end of list
+    assignee: assigneeArray,
+    position: position || Date.now(),
   });
 
   return await task.populate("assignee.userId", "firstName lastName profile");
@@ -57,12 +49,8 @@ export const updateTaskFields = async (taskId, updateData, userId) => {
   ];
 
   // Handle complex assignee update logic
-  if (updateData.assigneeId) {
-    const isAssigneeValid =
-      idOf(project.createdBy) === idOf(updateData.assigneeId) ||
-      project.team.some((mId) => idOf(mId) === idOf(updateData.assigneeId));
-    if (!isAssigneeValid) throw new AppError("Assignee not in project", 400);
-    task.assignee = [{ userId: updateData.assigneeId }];
+  if (updateData.assigneeId !== undefined) {
+    task.assignee = parseAssignees(updateData.assigneeId, project);
   }
 
   allowedUpdates.forEach((field) => {
@@ -89,7 +77,15 @@ export const deleteTaskById = async (taskId, userId) => {
 };
 
 export const getMyTasks = async (userId) => {
-  return await Task.find({ "assignee.userId": userId })
+  const ownedProjects = await Project.find({ createdBy: userId }).select("_id");
+  const ownedProjectIds = ownedProjects.map((p) => p._id);
+
+  return await Task.find({
+    $or: [
+      { "assignee.userId": userId },
+      { project: { $in: ownedProjectIds }, "assignee.0": { $exists: false } },
+    ],
+  })
     .populate("project", "title icon")
     .populate("assignee.userId", "firstName lastName profile")
     .sort({ dueDate: 1 });
@@ -135,9 +131,58 @@ export const moveTask = async (taskId, { status, position }, userId) => {
   return await task.populate("assignee.userId", "firstName lastName profile");
 };
 
+export const assignTaskUser = async (taskId, assigneeIds, userId) => {
+  const task = await findTaskOrThrow(taskId);
+  const project = await verifyProjectAccess(task.project, userId);
+
+  task.assignee = parseAssignees(assigneeIds, project);
+
+  await task.save();
+  return await task.populate("assignee.userId", "firstName lastName profile");
+};
+
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+export const searchTasksQuery = async (q, userId) => {
+  const searchRegex = new RegExp(escapeRegex(q), "i");
+
+  const myProjects = await Project.find({
+    $or: [{ createdBy: userId }, { team: userId }],
+  }).select("_id");
+
+  const projectIds = myProjects.map((p) => p._id);
+
+  return await Task.find({
+    $and: [
+      { project: { $in: projectIds } },
+      { $or: [{ title: searchRegex }, { description: searchRegex }] },
+    ],
+  })
+    .select("title description status priority createdAt project")
+    .populate("project", "title icon")
+    .sort({ updatedAt: -1 })
+    .limit(20);
+};
+
 const idOf = (ref) => {
   if (!ref) return null;
   return ref._id ? ref._id.toString() : ref.toString();
+};
+
+const parseAssignees = (assigneeInput, project) => {
+  if (!assigneeInput) return [];
+  const ids = Array.isArray(assigneeInput) ? assigneeInput : (assigneeInput === "" ? [] : [assigneeInput]);
+  if (ids.length === 0) return [];
+
+  console.log("ids", ids);
+  ids.forEach(id => validateIds({ User: id }));
+
+  return ids.map(id => {
+    const isOwner = idOf(project.createdBy) === idOf(id);
+    const isMember = project.team.some((mId) => idOf(mId) === idOf(id));
+    if (!isOwner && !isMember) throw new AppError(`Assignee ${id} not in project`, 400);
+    return { userId: id, role: isOwner ? "owner" : "team" };
+  });
 };
 
 const findTaskOrThrow = async (taskId) => {

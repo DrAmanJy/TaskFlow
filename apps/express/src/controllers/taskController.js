@@ -1,10 +1,6 @@
-import Project from "../models/Project.js";
-import Task from "../models/Task.js";
 import * as taskService from "../services/taskService.js";
 import AppError from "../utils/AppError.js";
 import { sendResponse } from "../utils/sendResponse.js";
-
-const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 export const searchTasks = async (req, res) => {
   const { q } = req.query;
@@ -12,24 +8,7 @@ export const searchTasks = async (req, res) => {
 
   if (!q) throw new AppError("Search query is required", 400);
 
-  const searchRegex = new RegExp(escapeRegex(q), "i");
-
-  const myProjects = await Project.find({
-    $or: [{ createdBy: userId }, { team: userId }],
-  }).select("_id");
-
-  const projectIds = myProjects.map((p) => p._id);
-
-  const tasks = await Task.find({
-    $and: [
-      { project: { $in: projectIds } },
-      { $or: [{ title: searchRegex }, { description: searchRegex }] },
-    ],
-  })
-    .select("title description status priority createdAt project")
-    .populate("project", "title icon")
-    .sort({ updatedAt: -1 })
-    .limit(20);
+  const tasks = await taskService.searchTasksQuery(q, userId);
 
   res.status(200).json({
     status: "success",
@@ -92,4 +71,14 @@ export const updateTaskStatus = async (req, res) => {
     req.user._id,
   );
   sendResponse(res, 200, task, "Task moved successfully");
+};
+
+export const assignTask = async (req, res) => {
+  const { assigneeId } = req.body;
+  const task = await taskService.assignTaskUser(
+    req.params.id,
+    assigneeId,
+    req.user._id,
+  );
+  sendResponse(res, 200, task, "Task assignment updated successfully");
 };
