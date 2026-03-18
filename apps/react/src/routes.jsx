@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 // Public Pages
 import LandingPage from "./pages/LandingPage";
 import ArchitecturePage from "./pages/ArchitecturePage";
+import AboutPage from "./pages/AboutPage";
 
 // Dashboard Pages
 
@@ -23,6 +24,7 @@ const router = createBrowserRouter([
     children: [
       { path: "/", element: <LandingPage /> },
       { path: "/architecture", element: <ArchitecturePage /> },
+      { path: "/about", element: <AboutPage /> },
       { path: "/auth", element: <AuthPage /> },
     ],
   },
