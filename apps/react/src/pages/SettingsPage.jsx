@@ -18,17 +18,12 @@ import { InvitationsTab } from "../components/settings/InvitationsTab";
 import { NotificationsTab } from "../components/settings/NotificationsTab";
 import { AppearanceTab } from "../components/settings/AppearanceTab";
 
-// Mock User Data
-const currentUser = {
-  id: "69a7d90bb8ab5190818cc174",
-  firstName: "Aman",
-  lastName: "Lathar",
-  fullName: "Aman Lathar",
-  email: "aman@example.com",
-  profile: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aman",
-};
+import { useAuth } from "../context/authContext";
+import { userService } from "../api/userService";
+import toast from "react-hot-toast";
 
 export default function SettingsPage() {
+  const { user: currentUser, refreshProfile } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -36,10 +31,11 @@ export default function SettingsPage() {
 
   // Form States
   const [profileData, setProfileData] = useState({
-    firstName: currentUser.firstName,
-    lastName: currentUser.lastName,
-    email: currentUser.email,
-    title: "Senior Developer",
+    firstName: currentUser?.firstName || "",
+    lastName: currentUser?.lastName || "",
+    email: currentUser?.email || "",
+    title: currentUser?.jobTitle || "",
+    profileImage: null,
   });
 
   const [invitations, setInvitations] = useState([
@@ -72,17 +68,25 @@ export default function SettingsPage() {
     taskMentions: true,
   });
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
     setIsSaving(true);
     setShowSuccess(false);
 
-    // Simulate API Call
-    setTimeout(() => {
-      setIsSaving(false);
+    try {
+      await userService.updateProfile({
+        ...profileData,
+        jobTitle: profileData.title
+      });
+      await refreshProfile();
+      toast.success("Profile updated successfully!");
       setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000); // Hide success message after 3s
-    }, 1500);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (err) {
+      toast.error(err.message || "Failed to save settings");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const tabs = [
@@ -92,30 +96,30 @@ export default function SettingsPage() {
       icon: User,
       description: "Manage your personal information",
     },
-    {
-      id: "security",
-      label: "Security",
-      icon: Lock,
-      description: "Password and authentication",
-    },
+    // {
+    //   id: "security",
+    //   label: "Security",
+    //   icon: Lock,
+    //   description: "Password and authentication",
+    // },
     {
       id: "invitations",
       label: "Invitations",
       icon: UserPlus,
       description: "Manage project invites",
     },
-    {
-      id: "notifications",
-      label: "Notifications",
-      icon: Bell,
-      description: "Control your alert preferences",
-    },
-    {
-      id: "appearance",
-      label: "Appearance",
-      icon: Palette,
-      description: "Customize the workspace UI",
-    },
+    // {
+    //   id: "notifications",
+    //   label: "Notifications",
+    //   icon: Bell,
+    //   description: "Control your alert preferences",
+    // },
+    // {
+    //   id: "appearance",
+    //   label: "Appearance",
+    //   icon: Palette,
+    //   description: "Customize the workspace UI",
+    // },
   ];
 
   return (
