@@ -43,6 +43,15 @@ const userSchema = new mongoose.Schema(
       default: "user",
       trim: true,
     },
+    invites: [
+      {
+        project: { type: mongoose.Schema.Types.ObjectId, ref: "Project" },
+        invitedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        role: { type: String, default: "team" },
+        status: { type: String, enum: ["pending", "accepted", "declined"], default: "pending" },
+        date: { type: Date, default: Date.now },
+      }
+    ],
     refreshToken: { type: String },
     isActive: {
       type: Boolean,
