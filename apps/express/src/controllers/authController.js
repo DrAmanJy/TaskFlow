@@ -1,4 +1,4 @@
-import * as userService from "../services/userService.js";
+import * as authService from "../services/authService.js";
 import { cookieOptions } from "../../constants.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
@@ -6,7 +6,7 @@ import AppError from "../utils/AppError.js";
 import User from "../models/User.js";
 
 export const register = async (req, res) => {
-  const newUser = await userService.createUser(req.body);
+  const newUser = await authService.createUser(req.body);
 
   const accessToken = newUser.generateAccessToken();
   const refreshToken = newUser.generateRefreshToken();
@@ -26,7 +26,7 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   const { email, password } = req.body;
-  const user = await userService.authenticateUser(email, password);
+  const user = await authService.authenticateUser(email, password);
 
   const accessToken = user.generateAccessToken();
   const refreshToken = user.generateRefreshToken();
