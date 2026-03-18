@@ -39,6 +39,15 @@ export const getProjectById = async (projectId, userId) => {
     throw new AppError("Not authorized to read this project", 403);
   }
 
+  if (isOwner) {
+    const unassignedTasks = await Task.find({
+      project: project._id,
+      "assignee.0": { $exists: false },
+    });
+    const projObj = project.toObject ? project.toObject() : project;
+    return { ...projObj, unassignedTasks };
+  }
+
   return project;
 };
 
@@ -108,32 +117,42 @@ export const removeProject = async (
   return project;
 };
 
-export const addTeamMember = async (userEmail, projectId, requesterId) => {
+export const inviteTeamMember = async (userEmail, projectId, requesterId, role = "team") => {
   const project = await findProjectOrThrow(projectId);
   checkProjectOwnership(project, requesterId);
 
-  const userToAdd = await findUserByEmail(userEmail);
-  const userToAddId = userToAdd._id.toString();
+  const userToInvite = await findUserByEmail(userEmail);
+  const userToInviteId = userToInvite._id.toString();
 
-  if (project.createdBy.toString() === userToAddId) {
-    throw new AppError("You are already the owner of this project", 400);
+  if (project.createdBy.toString() === userToInviteId) {
+    throw new AppError("You cannot invite yourself to your own project", 400);
   }
 
   const isAlreadyMember = project.team.some(
-    (memberId) => memberId.toString() === userToAddId,
+    (memberId) => memberId.toString() === userToInviteId,
   );
 
   if (isAlreadyMember) {
     throw new AppError("User is already a member of this project", 400);
   }
 
-  const updatedProject = await Project.findByIdAndUpdate(
-    projectId,
-    { $addToSet: { team: userToAdd._id } },
-    { new: true },
-  ).populate("team", "firstName lastName profile");
+  const hasPendingInvite = userToInvite.invites.some(
+    (invite) => invite.project.toString() === projectId.toString() && invite.status === "pending"
+  );
 
-  return updatedProject;
+  if (hasPendingInvite) {
+    throw new AppError("User already has a pending invitation for this project", 400);
+  }
+
+  userToInvite.invites.push({
+    project: projectId,
+    invitedBy: requesterId,
+    role,
+    status: "pending",
+  });
+
+  await userToInvite.save();
+  return { message: "Invitation sent successfully" };
 };
 
 export const removeTeamMember = async (userEmail, projectId, requesterId) => {
