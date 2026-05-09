@@ -1,8 +1,11 @@
 import React from "react";
 import { CheckCircle2, ClipboardList } from "lucide-react";
 import { Link } from "react-router-dom"; // Assuming you use react-router for the "View All" link
+import { useTask } from "../../context/TaskContext";
 
 const TaskList = ({ tasks = [] }) => {
+  const { moveTask } = useTask();
+
   // Only show tasks that are not done, and limit to the 5 most recent/urgent
   const pendingTasks = tasks
     .filter((task) => task.status !== "done")
@@ -44,7 +47,7 @@ const TaskList = ({ tasks = [] }) => {
                 </p>
               </div>
               <button
-                // You can wire this up to your moveTask logic to instantly mark it done from the dashboard
+                onClick={() => moveTask(task.id || task._id, { status: "done" })}
                 className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 text-sm font-bold rounded-xl hover:bg-emerald-600 hover:text-white transition-all shrink-0"
               >
                 <CheckCircle2 className="w-4 h-4" /> Mark Done
