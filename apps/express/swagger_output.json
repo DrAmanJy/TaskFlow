@@ -1,12 +1,42 @@
 {
   "swagger": "2.0",
   "info": {
+    "version": "1.0.0",
     "title": "TaskFlow API",
     "description": "Production grade API documentation for the TaskFlow backend.",
-    "version": "1.0.0"
+    "contact": {
+      "name": "API Support",
+      "email": "support@taskflow.local"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
   },
   "host": "localhost:3000",
   "basePath": "/",
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "Endpoints for managing user registration, login, and token refresh workflows."
+    },
+    {
+      "name": "Projects",
+      "description": "Endpoints for creating, reading, updating, and deleting projects, as well as team management."
+    },
+    {
+      "name": "Tasks",
+      "description": "Endpoints for managing tasks within projects, including status updates and assignments."
+    },
+    {
+      "name": "Users",
+      "description": "Endpoints for managing user profiles and preferences."
+    },
+    {
+      "name": "Chat",
+      "description": "Endpoints for real-time project messaging and chat history."
+    }
+  ],
   "schemes": [
     "http",
     "https"
@@ -19,6 +49,12 @@
       "description": "Enter your Bearer token in the format **Bearer &lt;token&gt;**"
     }
   },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
   "paths": {
     "/api/auth/register": {
       "post": {
