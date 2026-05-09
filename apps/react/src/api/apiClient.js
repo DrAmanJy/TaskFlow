@@ -29,7 +29,7 @@ const refreshAccessTokenOnce = () => {
 };
 
 export const apiClient = async (endpoint, options = {}, isRetry = false) => {
-  console.log("making request at", endpoint);
+
   const token = localStorage.getItem("accessToken");
 
   const config = {
@@ -44,7 +44,6 @@ export const apiClient = async (endpoint, options = {}, isRetry = false) => {
   const response = await fetch(`${BASE_URL}${endpoint}`, config);
   if (response.status === 401 && !isRetry && !endpoint.startsWith("/auth")) {
     const newAccessToken = await refreshAccessTokenOnce();
-    console.log(newAccessToken);
     if (newAccessToken) {
       return apiClient(endpoint, options, true);
     }
@@ -57,7 +56,6 @@ export const apiClient = async (endpoint, options = {}, isRetry = false) => {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    console.log(errorData);
     throw new Error(errorData.message || "Something went wrong");
   }
 

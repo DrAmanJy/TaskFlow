@@ -48,7 +48,6 @@ export default function TaskForm({ onClose, projectId, existingTask = null }) {
       assignee: existingTask?.assignee?.id || "",
     },
   });
-  console.log(errors);
   const { createTask, updateTask, status: taskStatus } = useTask();
   const { projects } = useProjects();
 
