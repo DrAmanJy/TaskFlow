@@ -6,6 +6,30 @@ import AppError from "../utils/AppError.js";
 import User from "../models/User.js";
 
 export const register = async (req, res) => {
+  /*
+    #swagger.tags = ['Authentication']
+    #swagger.summary = 'Register a new user'
+    #swagger.description = 'Creates a new user account and returns access and refresh tokens.'
+    #swagger.parameters['body'] = {
+      in: 'body',
+      description: 'User registration details',
+      required: true,
+      schema: {
+        $firstName: 'John',
+        $lastName: 'Doe',
+        $email: 'john.doe@example.com',
+        $password: 'StrongP@ssw0rd'
+      }
+    }
+    #swagger.responses[201] = {
+      description: 'User successfully registered',
+      schema: {
+        status: 'success',
+        data: { _id: '...', email: 'john.doe@example.com', role: 'user' },
+        accessToken: 'eyJhbGci...'
+      }
+    }
+  */
   const newUser = await authService.createUser(req.body);
 
   const accessToken = newUser.generateAccessToken();
@@ -25,6 +49,29 @@ export const register = async (req, res) => {
 };
 
 export const login = async (req, res) => {
+  /*
+    #swagger.tags = ['Authentication']
+    #swagger.summary = 'Login a user'
+    #swagger.description = 'Authenticates a user and returns access and refresh tokens.'
+    #swagger.parameters['body'] = {
+      in: 'body',
+      description: 'User login credentials',
+      required: true,
+      schema: {
+        $email: 'john.doe@example.com',
+        $password: 'StrongP@ssw0rd'
+      }
+    }
+    #swagger.responses[200] = {
+      description: 'User successfully logged in',
+      schema: {
+        status: 'success',
+        data: { _id: '...', email: 'john.doe@example.com', role: 'user' },
+        accessToken: 'eyJhbGci...'
+      }
+    }
+    #swagger.responses[401] = { description: 'Invalid credentials' }
+  */
   const { email, password } = req.body;
   const user = await authService.authenticateUser(email, password);
 
@@ -45,6 +92,19 @@ export const login = async (req, res) => {
 };
 
 export const refreshAccessToken = async (req, res) => {
+  /*
+    #swagger.tags = ['Authentication']
+    #swagger.summary = 'Refresh Access Token'
+    #swagger.description = 'Generates a new access token using the HTTP-only refresh token cookie.'
+    #swagger.responses[200] = {
+      description: 'Access token refreshed successfully',
+      schema: {
+        success: true,
+        accessToken: 'eyJhbGci...'
+      }
+    }
+    #swagger.responses[401] = { description: 'Token not provided or invalid' }
+  */
   const refreshToken = req.cookies.refreshToken;
 
   if (!refreshToken) {
@@ -80,6 +140,16 @@ export const refreshAccessToken = async (req, res) => {
 };
 
 export const logout = async (req, res) => {
+  /*
+    #swagger.tags = ['Authentication']
+    #swagger.summary = 'Logout user'
+    #swagger.description = 'Clears the refresh token cookie and logs out the user.'
+    #swagger.security = [{ "bearerAuth": [] }]
+    #swagger.responses[200] = {
+      description: 'Logged out successfully',
+      schema: { success: true, message: 'Logged out successfully' }
+    }
+  */
   if (req.user?._id) {
     await User.findByIdAndUpdate(req.user._id, {
       $unset: { refreshToken: 1 },

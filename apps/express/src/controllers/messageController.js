@@ -6,6 +6,28 @@ import { validateIds } from "../utils/idValidator.js";
 import { sendResponse } from "../utils/sendResponse.js";
 
 export const syncMessages = async (req, res) => {
+  /*
+    #swagger.tags = ['Chat']
+    #swagger.summary = 'Get chat messages'
+    #swagger.description = 'Retrieves the latest 50 messages for a specific task. User must be a team member or project creator.'
+    #swagger.security = [{ "bearerAuth": [] }]
+    #swagger.parameters['taskId'] = { description: 'Task ID' }
+    #swagger.responses[200] = {
+      description: 'List of messages',
+      schema: {
+        status: 'success',
+        data: [{
+          _id: '...',
+          task: '...',
+          text: 'Hello team',
+          isEdited: false,
+          user: { _id: '...', firstName: 'John', lastName: 'Doe', profile: 'url...' },
+          createdAt: '2023-01-01T00:00:00.000Z'
+        }]
+      }
+    }
+    #swagger.responses[403] = { description: 'Not authorized to view this chat' }
+  */
   const { taskId } = req.params;
   const userId = req.user._id;
 
@@ -33,6 +55,32 @@ export const syncMessages = async (req, res) => {
   return sendResponse(res, 200, messages);
 };
 export const sendMessage = async (req, res) => {
+  /*
+    #swagger.tags = ['Chat']
+    #swagger.summary = 'Send a message'
+    #swagger.description = 'Sends a new message to a specific task chat.'
+    #swagger.security = [{ "bearerAuth": [] }]
+    #swagger.parameters['taskId'] = { description: 'Task ID' }
+    #swagger.parameters['body'] = {
+      in: 'body',
+      description: 'Message content',
+      required: true,
+      schema: { $text: 'Hello Team!' }
+    }
+    #swagger.responses[201] = {
+      description: 'Message sent successfully',
+      schema: {
+        status: 'success',
+        data: {
+          _id: '...',
+          task: '...',
+          text: 'Hello Team!',
+          isEdited: false,
+          user: { _id: '...', firstName: 'John', lastName: 'Doe', profile: 'url...' }
+        }
+      }
+    }
+  */
   const { text } = req.body;
   const { taskId } = req.params;
   const userId = req.user._id;
@@ -78,6 +126,33 @@ export const sendMessage = async (req, res) => {
 };
 
 export const editMessage = async (req, res) => {
+  /*
+    #swagger.tags = ['Chat']
+    #swagger.summary = 'Edit a message'
+    #swagger.description = 'Edits an existing chat message. Users can only edit their own messages.'
+    #swagger.security = [{ "bearerAuth": [] }]
+    #swagger.parameters['id'] = { description: 'Message ID' }
+    #swagger.parameters['body'] = {
+      in: 'body',
+      description: 'Updated text',
+      required: true,
+      schema: { $text: 'Updated Message' }
+    }
+    #swagger.responses[200] = {
+      description: 'Message successfully edited',
+      schema: {
+        status: 'success',
+        message: 'Message successfully edited',
+        data: {
+          _id: '...',
+          text: 'Updated Message',
+          isEdited: true,
+          user: { _id: '...' }
+        }
+      }
+    }
+    #swagger.responses[403] = { description: 'Not authorized to edit this message' }
+  */
   const { text } = req.body;
   const { id } = req.params;
   const userId = req.user._id;
@@ -113,6 +188,22 @@ export const editMessage = async (req, res) => {
 };
 
 export const deleteMessage = async (req, res) => {
+  /*
+    #swagger.tags = ['Chat']
+    #swagger.summary = 'Delete a message'
+    #swagger.description = 'Deletes a chat message. Users can only delete their own messages.'
+    #swagger.security = [{ "bearerAuth": [] }]
+    #swagger.parameters['id'] = { description: 'Message ID' }
+    #swagger.responses[200] = {
+      description: 'Message successfully deleted',
+      schema: {
+        status: 'success',
+        message: 'Message successfully deleted',
+        data: { _id: '...', text: 'Deleted Message' }
+      }
+    }
+    #swagger.responses[404] = { description: 'Message not found or not authorized' }
+  */
   const { id } = req.params;
   const userId = req.user._id;
 

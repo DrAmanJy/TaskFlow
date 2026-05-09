@@ -72,7 +72,6 @@ export default function ProjectForm({ onClose, existingProject = null }) {
     toast.error("Please login before saving the project");
     return <Navigate to={"/auth?mode=login"} replace />;
   }
-  console.log(errors);
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-sans">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
@@ -184,11 +183,10 @@ export default function ProjectForm({ onClose, existingProject = null }) {
                     type="button"
                     disabled={isBusy}
                     onClick={() => setValue("icon", option.id)}
-                    className={`flex flex-col items-center justify-center gap-2 py-3 px-2 border-2 rounded-xl transition-all ${
-                      isActiveIcon === option.id
+                    className={`flex flex-col items-center justify-center gap-2 py-3 px-2 border-2 rounded-xl transition-all ${isActiveIcon === option.id
                         ? option.activeClass
                         : "border-slate-100 bg-white text-slate-500 hover:bg-slate-50"
-                    } disabled:opacity-50`}
+                      } disabled:opacity-50`}
                   >
                     <IconComponent
                       className="w-6 h-6"

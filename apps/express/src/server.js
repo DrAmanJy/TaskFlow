@@ -2,6 +2,13 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import helmet from "helmet";
+import swaggerUi from "swagger-ui-express";
+import fs from "fs";
+
+const swaggerFile = JSON.parse(
+  fs.readFileSync(new URL("../swagger_output.json", import.meta.url))
+);
 
 import connectDb from "./config/db.js";
 import authRouter from "./routes/authRoutes.js";
@@ -15,7 +22,10 @@ import chatRouter from "./routes/chatRoutes.js";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.set("trust proxy", 1);
+
 // 1. Middleware Setup
+app.use(helmet());
 app.use(
   cors({
     origin: ["http://localhost:5173", "http://localhost:4173", process.env.WEB_URI],
@@ -41,6 +51,7 @@ app.use("/api/projects", projectRouter);
 app.use("/api/tasks", taskRouter);
 app.use("/api/user", userRouter);
 app.use("/api/chat", chatRouter);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
 // 3. 404 & Error Handler
 app.use((req, res, next) => {

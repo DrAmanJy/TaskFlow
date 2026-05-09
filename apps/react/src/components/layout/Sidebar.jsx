@@ -65,7 +65,6 @@ const SidebarLinkItem = ({ item, isMobile, setOpenMobile }) => {
 };
 
 const Sidebar = ({ user }) => {
-  console.log("sidebar render")
 
   const { isMobile, setOpenMobile, toggleSidebar } = useSidebar();
 
