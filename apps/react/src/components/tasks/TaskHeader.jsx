@@ -1,7 +1,14 @@
 import React from "react";
 import { ArrowLeft, Folder, Check, CheckCircle2, Settings } from "lucide-react";
+import { useTask } from "../../context/TaskContext";
 
 export const TaskHeader = ({ task, onEditClick }) => {
+  const { moveTask } = useTask();
+
+  const handleMarkDone = () => {
+    moveTask(task.id || task._id, { status: "done" });
+  };
+
   return (
     <header className="bg-white border-b border-slate-200 px-6 h-16 flex items-center justify-between shadow-sm shrink-0 z-10">
       <div className="flex items-center gap-4">
@@ -23,12 +30,22 @@ export const TaskHeader = ({ task, onEditClick }) => {
       </div>
 
       <div className="flex items-center gap-3">
-        <button className="hidden sm:flex items-center gap-2 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 px-4 py-1.5 rounded-lg text-sm font-semibold transition-all">
-          <Check size={16} /> Mark Done
-        </button>
-        <button className="sm:hidden p-2 text-slate-400 hover:text-emerald-600 transition-colors">
-          <CheckCircle2 size={20} />
-        </button>
+        {task.status !== "done" && (
+          <>
+            <button 
+              onClick={handleMarkDone}
+              className="hidden sm:flex items-center gap-2 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 px-4 py-1.5 rounded-lg text-sm font-semibold transition-all"
+            >
+              <Check size={16} /> Mark Done
+            </button>
+            <button 
+              onClick={handleMarkDone}
+              className="sm:hidden p-2 text-slate-400 hover:text-emerald-600 transition-colors"
+            >
+              <CheckCircle2 size={20} />
+            </button>
+          </>
+        )}
         <div className="w-px h-6 bg-slate-200 hidden sm:block"></div>
         <button
           onClick={onEditClick}
