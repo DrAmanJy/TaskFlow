@@ -14,9 +14,9 @@ const doc = {
       url: "https://opensource.org/licenses/MIT"
     }
   },
-  host: "localhost:3000",
+  host: process.env.API_HOST || "localhost:3000",
   basePath: "/",
-  schemes: ["http", "https"],
+  schemes: process.env.NODE_ENV === "production" ? ["https"] : ["http", "https"],
   consumes: ["application/json"],
   produces: ["application/json"],
   tags: [
