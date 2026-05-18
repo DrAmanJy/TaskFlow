@@ -1,6 +1,6 @@
 import toast from "react-hot-toast";
 
-const BASE_URL = "http://localhost:3000/api";
+const BASE_URL = import.meta.env.VITE_API_URL;
 let refreshPromise = null;
 
 const refreshAccessTokenOnce = () => {
@@ -29,10 +29,10 @@ const refreshAccessTokenOnce = () => {
 };
 
 export const apiClient = async (endpoint, options = {}, isRetry = false) => {
-
   const token = localStorage.getItem("accessToken");
 
   const config = {
+    credentials: "include",
     ...options,
     headers: {
       "Content-Type": "application/json",
