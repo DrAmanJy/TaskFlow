@@ -19,7 +19,6 @@ export const searchTasks = async (req, res) => {
 
 export const createTask = async (req, res) => {
   const { assignee, projectId, ...rest } = req.body;
-  console.log(req.body);
   const task = await taskService.createNewTask(
     { ...rest, projectId, assigneeId: assignee },
     req.user._id,
