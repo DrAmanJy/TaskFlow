@@ -1,0 +1,538 @@
+paths:
+  /api/auth/register:
+    post:
+      tags: [Authentication]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [firstName, lastName, email, password]
+              properties:
+                firstName: { type: string, example: John }
+                lastName: { type: string, example: Doe }
+                email: { type: string, format: email }
+                password: { type: string, format: password, minLength: 8 }
+      responses:
+        "201":
+          description: User registered
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/auth/login:
+    post:
+      tags: [Authentication]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, format: password }
+      responses:
+        "200":
+          description: Authenticated
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/auth/refresh-token:
+    post:
+      tags: [Authentication]
+      summary: Refresh access token
+      description: Uses the HTTP-only refresh token cookie.
+      responses:
+        "200":
+          description: New access token issued
+        "401":
+          description: Missing or invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/projects/search:
+    get:
+      tags: [Projects]
+      summary: Search projects
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Matching projects
+        "400":
+          description: Search query required
+
+  /api/projects:
+    get:
+      tags: [Projects]
+      summary: List user projects
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Project list
+    post:
+      tags: [Projects]
+      summary: Create project
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title: { type: string }
+                description: { type: string }
+      responses:
+        "201":
+          description: Project created
+
+  /api/projects/{id}:
+    get:
+      tags: [Projects]
+      summary: Get project
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Project details
+        "404":
+          description: Not found
+    put:
+      tags: [Projects]
+      summary: Update project
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                description: { type: string }
+      responses:
+        "200":
+          description: Updated
+        "403":
+          description: Forbidden
+    delete:
+      tags: [Projects]
+      summary: Delete project
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Deleted
+        "403":
+          description: Only creator can delete
+
+  /api/projects/{id}/members/invite:
+    post:
+      tags: [Projects]
+      summary: Invite team member
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        "200":
+          description: Invitation sent
+
+  /api/projects/{id}/members/remove:
+    patch:
+      tags: [Projects]
+      summary: Remove team member
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId]
+              properties:
+                userId: { type: string }
+      responses:
+        "200":
+          description: Member removed
+
+  /api/projects/{id}/members/leave:
+    patch:
+      tags: [Projects]
+      summary: Leave project
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Left project
+        "400":
+          description: Creator cannot leave
+
+  /api/tasks/search:
+    get:
+      tags: [Tasks]
+      summary: Search tasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Matching tasks
+
+  /api/tasks:
+    get:
+      tags: [Tasks]
+      summary: List my tasks
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Task list
+    post:
+      tags: [Tasks]
+      summary: Create task
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, projectId]
+              properties:
+                title: { type: string }
+                description: { type: string }
+                projectId: { type: string }
+                status: { type: string, enum: [todo, in-progress, done] }
+                priority: { type: string, enum: [low, medium, high] }
+      responses:
+        "201":
+          description: Task created
+
+  /api/tasks/projects/{projectId}:
+    get:
+      tags: [Tasks]
+      summary: List project tasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: projectId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Tasks for project
+
+  /api/tasks/{id}:
+    get:
+      tags: [Tasks]
+      summary: Get task
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Task details
+        "404":
+          description: Not found
+    put:
+      tags: [Tasks]
+      summary: Update task
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                description: { type: string }
+                status: { type: string }
+                priority: { type: string }
+      responses:
+        "200":
+          description: Updated
+    delete:
+      tags: [Tasks]
+      summary: Delete task
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Deleted
+
+  /api/tasks/{id}/status:
+    patch:
+      tags: [Tasks]
+      summary: Update task status
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [todo, in-progress, done] }
+      responses:
+        "200":
+          description: Status updated
+
+  /api/tasks/{id}/assign:
+    patch:
+      tags: [Tasks]
+      summary: Assign task
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [assigneeId]
+              properties:
+                assigneeId: { type: string }
+      responses:
+        "200":
+          description: Task assigned
+
+  /api/user/me:
+    get:
+      tags: [Users]
+      summary: Get current user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User profile
+
+  /api/user/invites:
+    get:
+      tags: [Users]
+      summary: List project invites
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Pending invites
+
+  /api/user/update-me:
+    patch:
+      tags: [Users]
+      summary: Update profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName: { type: string }
+                lastName: { type: string }
+      responses:
+        "200":
+          description: Profile updated
+
+  /api/user/invites/{inviteId}/accept:
+    post:
+      tags: [Users]
+      summary: Accept invite
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: inviteId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Invite accepted
+
+  /api/user/invites/{inviteId}/decline:
+    post:
+      tags: [Users]
+      summary: Decline invite
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: inviteId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Invite declined
+
+  /api/chat/{taskId}:
+    get:
+      tags: [Chat]
+      summary: Get messages
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: taskId
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Message history
+        "403":
+          description: Not authorized
+    post:
+      tags: [Chat]
+      summary: Send message
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: taskId
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content: { type: string }
+      responses:
+        "201":
+          description: Message sent
+
+  /api/chat/{id}:
+    patch:
+      tags: [Chat]
+      summary: Edit message
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content: { type: string }
+      responses:
+        "200":
+          description: Message updated
+        "403":
+          description: Not authorized
+    delete:
+      tags: [Chat]
+      summary: Delete message
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Message deleted
