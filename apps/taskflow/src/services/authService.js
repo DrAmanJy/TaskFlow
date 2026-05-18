@@ -34,7 +34,7 @@ export const authenticateUser = async (email, password) => {
   }
   const user = await User.findOne({ email: email.toLowerCase() });
   if (!user) {
-    throw new AppError("Invalid email, user not found", 404);
+    throw new AppError("Invalid email or password", 401);
   }
 
   const isValidPassword = await user.comparePassword(password);

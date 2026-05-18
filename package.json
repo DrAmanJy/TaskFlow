@@ -1,14 +1,17 @@
 {
-  "name": "monorepo",
+  "name": "taskflow",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "description": "TaskFlow monorepo",
   "scripts": {
     "dev": "pnpm -r --parallel dev",
+    "dev:api": "pnpm --filter @apps/taskflow dev",
+    "dev:web": "pnpm --filter @apps/react dev",
     "build": "pnpm -r build",
-    "lint": "pnpm -r lint"
+    "lint": "pnpm -r lint",
+    "start:api": "pnpm --filter @apps/taskflow start"
   },
-  "keywords": [],
+  "keywords": ["taskflow"],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.28.2"
