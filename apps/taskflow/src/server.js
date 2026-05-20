@@ -4,6 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger.js";
 import connectDb from "./config/db.js";
 import authRouter from "./routes/authRoutes.js";
@@ -18,24 +19,12 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const isProduction = process.env.NODE_ENV === "production";
 
-function getAllowedOrigins() {
-  const origins = [];
-  if (process.env.WEB_URI) origins.push(process.env.WEB_URI);
-  if (!isProduction) {
-    origins.push("http://localhost:5173", "http://localhost:4173");
-  }
-  if (isProduction && origins.length === 0) {
-    throw new Error("WEB_URI must be set when NODE_ENV=production");
-  }
-  return origins;
-}
-
 app.set("trust proxy", 1);
 
 app.use(helmet());
 app.use(
   cors({
-    origin: getAllowedOrigins(),
+    origin: process.env.WEB_URI,
     credentials: true,
     methods: ["GET", "PUT", "POST", "DELETE", "PATCH"],
   }),
@@ -67,10 +56,7 @@ const enableApiDocs =
   (!isProduction && process.env.ENABLE_API_DOCS !== "false");
 
 if (enableApiDocs) {
-  app.get("/api-docs", (_req, res) => {
-    res.setHeader("Content-Type", "application/json");
-    res.send(swaggerSpec);
-  });
+  app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 }
 
 app.use("/api/auth", authRouter);
